@@ -10,6 +10,7 @@ A modern AI-powered web application built with Python and Streamlit to help prod
 - **Ranking**: Ranks features by popularity, frequency, and semantic similarity.
 - **Analytics Dashboard**: Interactive charts, WordClouds, and semantic search.
 
+
 ## Installation
 
 1. Clone or download this repository.
@@ -25,7 +26,7 @@ A modern AI-powered web application built with Python and Streamlit to help prod
 4. Generate sample data (if not already provided):
    ```bash
    python data/generate_sample_data.py
-   ```
+
 
 ## Usage
 
