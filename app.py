@@ -24,13 +24,22 @@ from utils.trends import analyze_demand_trends
 from utils.segments import analyze_customer_segments
 from utils.reporting import generate_markdown_report, generate_html_report, generate_pdf_report
 from utils.ai_agent import get_agent, query_agent, generate_prd, generate_release_notes
-from utils.visualization import (
-    plot_interactive_rice_matrix, plot_interactive_trends, 
-    plot_segment_donut, generate_wordcloud,
-    plot_bytevox_sentiment_donut, plot_bytevox_demand_velocity,
-    plot_bytevox_category_volume, plot_bytevox_segment_sentiment,
-    plot_bytevox_predictive_forecast
-)
+import importlib
+import utils.visualization as vis
+try:
+    importlib.reload(vis)
+except Exception:
+    pass
+
+plot_interactive_rice_matrix = getattr(vis, 'plot_interactive_rice_matrix', None)
+plot_interactive_trends = getattr(vis, 'plot_interactive_trends', None)
+plot_segment_donut = getattr(vis, 'plot_segment_donut', None)
+generate_wordcloud = getattr(vis, 'generate_wordcloud', None)
+plot_bytevox_sentiment_donut = getattr(vis, 'plot_bytevox_sentiment_donut', None)
+plot_bytevox_demand_velocity = getattr(vis, 'plot_bytevox_demand_velocity', None)
+plot_bytevox_category_volume = getattr(vis, 'plot_bytevox_category_volume', None)
+plot_bytevox_segment_sentiment = getattr(vis, 'plot_bytevox_segment_sentiment', None)
+plot_bytevox_predictive_forecast = getattr(vis, 'plot_bytevox_predictive_forecast', None)
 
 # ----------------- Streamlit Page Configuration ----------------- #
 st.set_page_config(
