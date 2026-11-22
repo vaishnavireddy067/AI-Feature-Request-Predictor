@@ -26,7 +26,7 @@ from utils.reporting import generate_markdown_report, generate_html_report, gene
 from utils.ai_agent import get_agent, query_agent, generate_prd, generate_release_notes
 from utils.visualization import (
     plot_interactive_rice_matrix, plot_interactive_trends, 
-    plot_segment_donut, plot_cluster_distribution, generate_wordcloud
+    plot_segment_donut, generate_wordcloud
 )
 
 # ----------------- Streamlit Page Configuration ----------------- #
@@ -37,7 +37,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ----------------- Premium Responsive SaaS CSS System ----------------- #
+# ----------------- Rock-Solid Fixed SaaS CSS (No Layout Shifts / Zero Jitter) ----------------- #
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -47,8 +47,35 @@ st.markdown("""
         color: #0f172a;
         background-color: #f8fafc;
     }
+
+    /* 1. LOCK SIDEBAR: FIXED WIDTH, NO RESIZING, NO JUMPING */
+    section[data-testid="stSidebar"] {
+        min-width: 320px !important;
+        max-width: 320px !important;
+        width: 320px !important;
+        transition: none !important;
+    }
+    div[data-testid="stSidebarContent"] {
+        overflow-x: hidden !important;
+        padding-top: 1.5rem !important;
+    }
     
-    /* Top SaaS App Navigation Bar */
+    /* 2. REMOVE ALL JITTERY TRANSFORMS AND SHIFTS */
+    *, *:hover {
+        transform: none !important;
+        animation: none !important;
+    }
+
+    /* 3. MAIN CONTAINER FIXED PADDING */
+    .main .block-container {
+        padding-top: 1.2rem !important;
+        padding-bottom: 2.5rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 100% !important;
+    }
+
+    /* Top SaaS App Navigation Bar (Stable & Fixed) */
     .saas-topbar {
         display: flex;
         flex-wrap: wrap;
@@ -56,39 +83,35 @@ st.markdown("""
         justify-content: space-between;
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 14px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
-        gap: 12px;
+        border-radius: 12px;
+        padding: 12px 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
     .saas-brand {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
     }
     .brand-icon {
         background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         color: white;
         font-weight: 900;
-        font-size: 1.25rem;
-        padding: 6px 12px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        font-size: 1.15rem;
+        padding: 6px 10px;
+        border-radius: 8px;
     }
     .brand-title {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         font-weight: 800;
-        letter-spacing: -0.02em;
         color: #0f172a;
         margin: 0;
         line-height: 1.2;
     }
     .brand-tagline {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 600;
         color: #64748b;
-        letter-spacing: 0.02em;
     }
     .saas-user-pill {
         display: flex;
@@ -96,9 +119,9 @@ st.markdown("""
         gap: 8px;
         background: #f1f5f9;
         border: 1px solid #e2e8f0;
-        padding: 6px 14px;
+        padding: 5px 12px;
         border-radius: 9999px;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: #334155;
     }
@@ -108,65 +131,18 @@ st.markdown("""
         background-color: #10b981;
         border-radius: 50%;
         display: inline-block;
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
     }
-    
-    /* Feature Discovery Hub Grid */
-    .discovery-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 14px;
-        margin-bottom: 24px;
-    }
-    .discovery-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    }
-    .discovery-card:hover {
-        transform: translateY(-2px);
-        border-color: #818cf8;
-        box-shadow: 0 6px 12px -2px rgba(79, 70, 229, 0.08);
-    }
-    .discovery-icon {
-        font-size: 1.4rem;
-        margin-bottom: 6px;
-    }
-    .discovery-title {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 4px;
-    }
-    .discovery-desc {
-        font-size: 0.78rem;
-        color: #64748b;
-        line-height: 1.4;
-    }
-    
-    /* Executive Metric Cards (Responsive Grid) */
-    .kpi-grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
+
+    /* Executive Metric Cards (Fixed height, no shift) */
     .saas-kpi-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 18px 22px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        border-radius: 12px;
+        padding: 16px 18px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         position: relative;
         overflow: hidden;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .saas-kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.06);
+        min-height: 110px;
     }
     .kpi-stripe {
         position: absolute;
@@ -174,29 +150,29 @@ st.markdown("""
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, #4f46e5, #818cf8);
+        background: #4f46e5;
     }
-    .kpi-stripe-green { background: linear-gradient(90deg, #10b981, #34d399); }
-    .kpi-stripe-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-    .kpi-stripe-red { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .kpi-stripe-green { background: #10b981; }
+    .kpi-stripe-amber { background: #f59e0b; }
+    .kpi-stripe-red { background: #ef4444; }
     
     .kpi-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     .kpi-label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
         color: #64748b;
     }
     .kpi-delta {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
-        padding: 2px 8px;
+        padding: 2px 7px;
         border-radius: 9999px;
     }
     .delta-positive { background: #dcfce7; color: #15803d; }
@@ -204,51 +180,74 @@ st.markdown("""
     .delta-negative { background: #fee2e2; color: #b91c1c; }
     
     .kpi-number {
-        font-size: 2.1rem;
+        font-size: 1.85rem;
         font-weight: 800;
         color: #0f172a;
-        letter-spacing: -0.03em;
         line-height: 1.1;
     }
     .kpi-footer {
-        font-size: 0.78rem;
+        font-size: 0.74rem;
         color: #64748b;
-        margin-top: 6px;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    
-    /* Kanban Board Columns & Cards */
+
+    /* Discovery Cards (Fixed height, no hover jump) */
+    .discovery-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .discovery-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 14px;
+        min-height: 85px;
+    }
+    .discovery-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 2px;
+    }
+    .discovery-desc {
+        font-size: 0.74rem;
+        color: #64748b;
+        line-height: 1.35;
+    }
+
+    /* Kanban Board Columns & Cards (Stable & Fixed) */
     .kanban-col-header {
         background: #f1f5f9;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-size: 0.85rem;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
         font-weight: 700;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     .kanban-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        transition: all 0.15s ease;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }
-    .kanban-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    }
-    
-    /* Pill Badges */
+
+    /* Badges */
     .badge-pill {
         display: inline-block;
-        padding: 3px 9px;
+        padding: 2px 8px;
         border-radius: 9999px;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         font-weight: 700;
     }
     .pill-now { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
@@ -256,63 +255,59 @@ st.markdown("""
     .pill-later { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
     .pill-team { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
     .pill-score { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
-    
-    /* RICE Step-by-Step Breakdown Card */
+
+    /* RICE math card */
     .rice-math-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 18px 20px;
-        margin-bottom: 14px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
     }
     .rice-math-step {
         background: #f8fafc;
         border: 1px solid #edf2f7;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin: 6px 0;
-        font-size: 0.84rem;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin: 5px 0;
+        font-size: 0.82rem;
         color: #334155;
     }
-    
-    /* Alert Banners */
+
+    /* Alert Banner */
     .saas-alert-banner {
         background: #ffffff;
         border: 1px solid #fed7aa;
         border-left: 4px solid #f97316;
-        border-radius: 10px;
-        padding: 12px 18px;
-        margin-bottom: 10px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
     }
-    
+
     /* Quote styling */
     .saas-quote {
         background: #f8fafc;
         border-left: 3px solid #6366f1;
-        border-radius: 0 8px 8px 0;
-        padding: 10px 14px;
-        margin: 8px 0;
+        border-radius: 0 6px 6px 0;
+        padding: 8px 12px;
+        margin: 6px 0;
         font-style: italic;
-        font-size: 0.88rem;
+        font-size: 0.84rem;
         color: #334155;
     }
-    
-    /* Streamlit Tabs Styling */
+
+    /* Clean Streamlit Tab Bar (No Overflow Jitter) */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
         background-color: #ffffff;
         padding: 6px;
-        border-radius: 12px;
+        border-radius: 10px;
         border: 1px solid #e2e8f0;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
+        margin-bottom: 16px;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 40px;
-        white-space: nowrap;
-        border-radius: 8px;
+        height: 38px;
+        border-radius: 6px;
         font-size: 0.82rem;
         font-weight: 600;
         color: #475569;
@@ -321,15 +316,6 @@ st.markdown("""
     .stTabs [aria-selected="true"] {
         background-color: #4f46e5 !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
-    }
-    
-    /* Responsive Media Queries */
-    @media (max-width: 768px) {
-        .saas-topbar { flex-direction: column; align-items: flex-start; }
-        .kpi-row { grid-template-columns: 1fr; }
-        .discovery-grid { grid-template-columns: 1fr; }
-        .stTabs [data-baseweb="tab"] { font-size: 0.75rem; padding: 4px 8px; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -353,7 +339,7 @@ state_defaults = {
     'cluster_summaries': {},
     'cluster_keywords': {},
     'total_duplicates': 0,
-    # Custom scoring weights
+    # Stable custom scoring weights
     'weight_reach': 1.0,
     'weight_impact': 1.0,
     'weight_confidence': 1.0,
@@ -364,7 +350,7 @@ for k, v in state_defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ----------------- Top SaaS Navigation Bar ----------------- #
+# ----------------- Top SaaS Navigation Bar (Fixed & Stable) ----------------- #
 st.markdown("""
 <div class="saas-topbar">
     <div class="saas-brand">
@@ -374,12 +360,12 @@ st.markdown("""
             <div class="brand-tagline">Enterprise AI Product Strategy & Discovery SaaS</div>
         </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 10px;">
         <div class="saas-user-pill">
             <span class="status-dot"></span>
-            <span>Acme Cloud Workspace</span>
+            <span>Acme Cloud</span>
             <span style="color: #94a3b8;">•</span>
-            <span style="color: #4f46e5; font-weight: 700;">Enterprise Tier</span>
+            <span style="color: #4f46e5; font-weight: 700;">Enterprise</span>
         </div>
         <div class="saas-user-pill" style="background: #ffffff; border-color: #cbd5e1;">
             <span>👤 Vaishnavi R. (Lead PM)</span>
@@ -388,10 +374,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ----------------- Sidebar: Data Pipeline, Filters & Settings ----------------- #
+# ----------------- Sidebar: Data Pipeline, Filters & Settings (Locked Width) ----------------- #
 with st.sidebar:
     st.markdown("### 🏢 Workspace Control")
-    st.caption("Active Organization: **Acme Technologies Inc.**")
+    st.caption("Organization: **Acme Technologies Inc.**")
     
     hf_token = st.text_input(
         "🔑 Hugging Face Token (Optional)", 
@@ -400,32 +386,32 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.subheader("📥 Ingest Feedback")
+    st.subheader("📥 Data Ingestion")
     uploaded_file = st.file_uploader(
         "Upload Customer Feedback (CSV)", 
         type=["csv"], 
-        help="Upload CSV with customer feedback tickets. Supports columns: Request_Text, Category, Upvotes, Date, Customer_Segment, Source."
+        help="Upload CSV with feedback tickets. Supports columns: Request_Text, Category, Upvotes, Date, Customer_Segment, Source."
     )
     
     col_load_sample, col_clear = st.columns(2)
     with col_load_sample:
-        if st.button("📁 Load 1k Sample", type="primary", help="Load pre-built 1,000 enterprise feedback dataset."):
+        if st.button("📁 Load 1k Sample", type="primary", use_container_width=True):
             sample_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_requests.csv')
             if os.path.exists(sample_path):
                 with open(sample_path, 'r', encoding='utf-8') as f:
                     uploaded_file = io.StringIO(f.read())
-                    st.success("1,000 requests loaded!")
+                    st.success("Loaded 1,000 requests!")
             else:
                 st.error("Sample dataset not found.")
                 
     with col_clear:
-        if st.button("🔄 Reset App"):
+        if st.button("🔄 Reset", use_container_width=True):
             for k in state_defaults.keys():
                 st.session_state[k] = state_defaults[k]
             st.rerun()
 
 # ----------------- Processing Pipeline ----------------- #
-if uploaded_file is not None and (st.sidebar.button("⚡ Run AI Prioritization", type="primary") or not st.session_state.processed_data):
+if uploaded_file is not None and (st.sidebar.button("⚡ Run AI Prioritization", type="primary", use_container_width=True) or not st.session_state.processed_data):
     try:
         progress_bar = st.progress(0, text="Initializing Data Pipeline...")
         start_time = time.time()
@@ -508,8 +494,8 @@ if uploaded_file is not None and (st.sidebar.button("⚡ Run AI Prioritization",
         st.session_state.processed_data = True
         
         elapsed = time.time() - start_time
-        progress_bar.progress(100, text=f"✅ Prioritization complete in {elapsed:.2f}s!")
-        time.sleep(0.4)
+        progress_bar.progress(100, text=f"✅ Analysis complete in {elapsed:.2f}s!")
+        time.sleep(0.3)
         progress_bar.empty()
     except Exception as e:
         st.error(f"❌ Error during data processing: {str(e)}")
@@ -526,35 +512,34 @@ if st.session_state.processed_data and st.session_state.df is not None:
     segment_summary_df = st.session_state.segment_summary_df
     alerts = st.session_state.alerts
     
-    # ----------------- Sidebar: Multi-Dimensional Filter Bar ----------------- #
+    # ----------------- Sidebar: Stable Multi-Dimensional Filters ----------------- #
     with st.sidebar:
         st.markdown("---")
-        st.subheader("🔍 Multi-Dimensional Filter Bar")
-        
-        # Date range
-        min_date = pd.to_datetime(df['Date']).min().date()
-        max_date = pd.to_datetime(df['Date']).max().date()
-        date_range = st.date_input("Date Window", [min_date, max_date], min_value=min_date, max_value=max_date)
-        
-        # Sentiment
-        sentiments = df['Sentiment'].unique().tolist()
-        selected_sentiments = st.multiselect("Customer Sentiment", sentiments, default=sentiments)
-        
-        # Customer Segment
-        segments = df['Customer_Segment'].unique().tolist()
-        selected_segments = st.multiselect("Customer Tier", segments, default=segments)
-        
-        # Category
-        categories = sorted(df['Category'].unique().tolist())
-        selected_categories = st.multiselect("Functional Domain", categories, default=categories)
-        
-        # Source
-        sources = sorted(df['Source'].unique().tolist())
-        selected_sources = st.multiselect("Feedback Source", sources, default=sources)
-        
-        # Status
-        statuses = sorted(df['Status'].unique().tolist())
-        selected_statuses = st.multiselect("Ticket Status", statuses, default=statuses)
+        with st.expander("🔍 Filter Dataset", expanded=False):
+            # Date range
+            min_date = pd.to_datetime(df['Date']).min().date()
+            max_date = pd.to_datetime(df['Date']).max().date()
+            date_range = st.date_input("Date Window", [min_date, max_date], min_value=min_date, max_value=max_date, key="sb_date")
+            
+            # Sentiment
+            sentiments = df['Sentiment'].unique().tolist()
+            selected_sentiments = st.multiselect("Sentiment", sentiments, default=sentiments, key="sb_sent")
+            
+            # Customer Segment
+            segments = df['Customer_Segment'].unique().tolist()
+            selected_segments = st.multiselect("Customer Tier", segments, default=segments, key="sb_seg")
+            
+            # Category
+            categories = sorted(df['Category'].unique().tolist())
+            selected_categories = st.multiselect("Category", categories, default=categories, key="sb_cat")
+            
+            # Source
+            sources = sorted(df['Source'].unique().tolist())
+            selected_sources = st.multiselect("Source", sources, default=sources, key="sb_src")
+            
+            # Status
+            statuses = sorted(df['Status'].unique().tolist())
+            selected_statuses = st.multiselect("Status", statuses, default=statuses, key="sb_stat")
         
         # Apply filters
         start_d = date_range[0] if len(date_range) > 0 else min_date
@@ -570,18 +555,19 @@ if st.session_state.processed_data and st.session_state.df is not None:
             (df['Status'].isin(selected_statuses))
         ]
         
-        pct_filtered = round((len(filtered) / len(df)) * 100, 1)
-        st.caption(f"📊 **Showing {len(filtered):,} of {len(df):,} requests ({pct_filtered}%)**")
+        pct_filtered = round((len(filtered) / len(df)) * 100, 1) if len(df) > 0 else 0
+        st.caption(f"📊 **Filtered:** {len(filtered):,} / {len(df):,} ({pct_filtered}%)")
         
         st.markdown("---")
-        st.subheader("📤 Executive Export Center")
+        st.markdown("### 📤 Executive Downloads")
         
         md_report = generate_markdown_report(filtered, ranking_df, roadmap_df, insights, trends_df, segment_summary_df)
         st.download_button(
             label="📄 Executive Report (.md)",
             data=md_report,
             file_name="executive_product_strategy.md",
-            mime="text/markdown"
+            mime="text/markdown",
+            use_container_width=True
         )
         
         html_report = generate_html_report(filtered, ranking_df, roadmap_df, insights, trends_df, segment_summary_df)
@@ -589,16 +575,18 @@ if st.session_state.processed_data and st.session_state.df is not None:
             label="🌐 Executive Dashboard (.html)",
             data=html_report,
             file_name="executive_product_dashboard.html",
-            mime="text/html"
+            mime="text/html",
+            use_container_width=True
         )
         
         try:
             pdf_buffer = generate_pdf_report(filtered, ranking_df, roadmap_df, insights, trends_df, segment_summary_df)
             st.download_button(
-                label="📑 Executive PDF Report (.pdf)",
+                label="📑 Executive PDF (.pdf)",
                 data=pdf_buffer.getvalue(),
                 file_name="executive_product_strategy.pdf",
-                mime="application/pdf"
+                mime="application/pdf",
+                use_container_width=True
             )
         except Exception:
             pass
@@ -608,10 +596,11 @@ if st.session_state.processed_data and st.session_state.df is not None:
             label="📊 Filtered Signals (.csv)",
             data=filtered_csv,
             file_name="filtered_feature_requests.csv",
-            mime="text/csv"
+            mime="text/csv",
+            use_container_width=True
         )
 
-    # ----------------- Executive Metric Cards Strip ----------------- #
+    # ----------------- Executive Metric Cards Strip (Fixed Height, No Shifts) ----------------- #
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     
     with col_kpi1:
@@ -673,61 +662,50 @@ if st.session_state.processed_data and st.session_state.df is not None:
 
     # ----------------- Feature Discovery Quick Hub ----------------- #
     st.markdown("""
-    <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">
-            ⚡ Feature Discovery Hub
-        </span>
-        <span style="font-size: 0.8rem; color: #94a3b8;">
-            8 Active SaaS Intelligence Modules
+    <div style="margin-top: 14px; margin-bottom: 8px;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">
+            ⚡ Platform Capabilities Hub
         </span>
     </div>
     <div class="discovery-grid">
         <div class="discovery-card">
-            <div class="discovery-icon">🎯</div>
-            <div class="discovery-title">RICE Decision Engine</div>
-            <div class="discovery-desc">Explainable Reach, Impact, Confidence & Effort formulas with custom sensitivity sliders.</div>
+            <div class="discovery-title">🎯 RICE Decision Engine</div>
+            <div class="discovery-desc">Explainable formulas with live sensitivity weights.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">🗺️</div>
-            <div class="discovery-title">Kanban Roadmap</div>
-            <div class="discovery-desc">Interactive Now / Next / Later board with drag/select stage movement and team routing.</div>
+            <div class="discovery-title">🗺️ Kanban Roadmap</div>
+            <div class="discovery-desc">Now / Next / Later board with drag/select stage movement.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">🔗</div>
-            <div class="discovery-title">Dependency Architecture</div>
-            <div class="discovery-desc">Prerequisite mapping and automated blocker warnings before sprint commitment.</div>
+            <div class="discovery-title">🔗 Dependency Architecture</div>
+            <div class="discovery-desc">Prerequisite mapping and automated blocker warnings.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">💡</div>
-            <div class="discovery-title">Evidence Insights</div>
-            <div class="discovery-desc">Verbatim customer feedback quotes, tier breakdowns, and transparent AI rationales.</div>
+            <div class="discovery-title">💡 Evidence Insights</div>
+            <div class="discovery-desc">Verbatim customer quotes and transparent AI rationales.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">📈</div>
-            <div class="discovery-title">Demand Velocity Trends</div>
-            <div class="discovery-desc">60-day momentum tracking and 30-day forward demand volume projections.</div>
+            <div class="discovery-title">📈 Demand Velocity</div>
+            <div class="discovery-desc">60-day momentum tracking and 30-day forecast projections.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">👥</div>
-            <div class="discovery-title">Segment Intelligence</div>
-            <div class="discovery-desc">Compare Enterprise vs Free customer priorities and revenue-weighted impact (4x).</div>
+            <div class="discovery-title">👥 Segment Intelligence</div>
+            <div class="discovery-desc">Enterprise vs Free tier priorities and 4x revenue-weighting.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">🔍</div>
-            <div class="discovery-title">Deduplication Explorer</div>
-            <div class="discovery-desc">Dense vector FAISS cosine clustering to merge duplicate backlog tickets.</div>
+            <div class="discovery-title">🔍 Deduplication Explorer</div>
+            <div class="discovery-desc">FAISS vector cosine clustering to merge duplicate tickets.</div>
         </div>
         <div class="discovery-card">
-            <div class="discovery-icon">🤖</div>
-            <div class="discovery-title">AI Product Copilot</div>
-            <div class="discovery-desc">Instant semantic search, 1-click PRD generation, and customer release notes.</div>
+            <div class="discovery-title">🤖 AI Product Copilot</div>
+            <div class="discovery-desc">Instant semantic search, 1-click PRD & release notes.</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ----------------- Emerging Signals Banner ----------------- #
+    # ----------------- Real-Time Intelligence Alerts ----------------- #
     if alerts:
-        with st.expander(f"🔔 **Real-Time Intelligence Alerts ({len(alerts)} Signals Active)**", expanded=False):
+        with st.expander(f"🔔 **Real-Time Intelligence Alerts ({len(alerts)} Active Signals)**", expanded=False):
             for alert in alerts[:3]:
                 st.markdown(
                     f"""<div class="saas-alert-banner">
@@ -735,17 +713,17 @@ if st.session_state.processed_data and st.session_state.df is not None:
                             <strong>{alert['Badge']}</strong>
                             <span style="font-size: 0.75rem; font-weight: 700; color: #b45309;">{alert['Metric']}</span>
                         </div>
-                        <div style="font-size: 0.88rem; color: #334155; margin-bottom: 6px;">
+                        <div style="font-size: 0.85rem; color: #334155; margin-bottom: 4px;">
                             <strong>{alert['Theme']}</strong>: {alert['Description']}
                         </div>
-                        <div style="font-size: 0.8rem; background: #fff7ed; padding: 4px 8px; border-radius: 6px; color: #c2410c;">
-                            <strong>Action:</strong> {alert['Action']}
+                        <div style="font-size: 0.78rem; color: #c2410c;">
+                            <strong>Action:</strong> <code>{alert['Action']}</code>
                         </div>
                     </div>""",
                     unsafe_allow_html=True
                 )
 
-    # ----------------- Primary SaaS Workspace Tabs ----------------- #
+    # ----------------- Primary SaaS Workspace Tabs (Fixed Structure) ----------------- #
     tab_rice, tab_roadmap, tab_dependencies, tab_insights, tab_trends, tab_segments, tab_clusters, tab_copilot = st.tabs([
         "🎯 RICE Decision Engine",
         "🗺️ Interactive Roadmap Board",
@@ -762,7 +740,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         st.markdown("### 🎯 Smart Priority Score (RICE) Engine & Step-by-Step Explainability")
         st.caption("Calculate transparent, objective feature scores using Reach, Impact, Confidence, and Effort.")
         
-        # Strategic Presets & Custom Weights
+        # Strategic Presets & Custom Weights (Using Form to avoid layout jitter)
         with st.expander("⚖️ Strategic Weight Presets & Sensitivity Sliders", expanded=True):
             col_preset, col_w_reach, col_w_impact, col_w_conf, col_w_eff = st.columns(5)
             
@@ -770,7 +748,8 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 preset_name = st.selectbox(
                     "Strategic Preset",
                     list(SCORING_PRESETS.keys()) + ["Custom Weights"],
-                    index=list(SCORING_PRESETS.keys()).index(st.session_state.active_preset) if st.session_state.active_preset in SCORING_PRESETS else 0
+                    index=list(SCORING_PRESETS.keys()).index(st.session_state.active_preset) if st.session_state.active_preset in SCORING_PRESETS else 0,
+                    key="rice_preset_select"
                 )
                 if preset_name != "Custom Weights" and preset_name != st.session_state.active_preset:
                     st.session_state.active_preset = preset_name
@@ -779,16 +758,24 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     st.session_state.weight_impact = p["weight_impact"]
                     st.session_state.weight_confidence = p["weight_confidence"]
                     st.session_state.weight_effort = p["weight_effort"]
-                    st.rerun()
+                    # Recalculate ranking safely without manual rerun
+                    ranking_df = rank_features(
+                        df, weight_reach=p["weight_reach"], weight_impact=p["weight_impact"], 
+                        weight_confidence=p["weight_confidence"], weight_effort=p["weight_effort"]
+                    )
+                    st.session_state.ranking_df = ranking_df
+                    roadmap_df = generate_ai_roadmap(df, ranking_df, st.session_state.cluster_keywords, st.session_state.cluster_summaries)
+                    st.session_state.roadmap_df = roadmap_df
+                    st.session_state.dependency_df = map_feature_dependencies(roadmap_df)
 
             with col_w_reach:
-                w_reach = st.slider("Reach Weight ($W_R$)", 0.2, 2.5, float(st.session_state.weight_reach), step=0.1)
+                w_reach = st.slider("Reach Weight ($W_R$)", 0.2, 2.5, float(st.session_state.weight_reach), step=0.1, key="rice_wr")
             with col_w_impact:
-                w_impact = st.slider("Impact Weight ($W_I$)", 0.2, 2.5, float(st.session_state.weight_impact), step=0.1)
+                w_impact = st.slider("Impact Weight ($W_I$)", 0.2, 2.5, float(st.session_state.weight_impact), step=0.1, key="rice_wi")
             with col_w_conf:
-                w_conf = st.slider("Confidence Weight ($W_C$)", 0.2, 2.5, float(st.session_state.weight_confidence), step=0.1)
+                w_conf = st.slider("Confidence Weight ($W_C$)", 0.2, 2.5, float(st.session_state.weight_confidence), step=0.1, key="rice_wc")
             with col_w_eff:
-                w_eff = st.slider("Effort Penalty ($W_E$)", 0.2, 2.5, float(st.session_state.weight_effort), step=0.1)
+                w_eff = st.slider("Effort Penalty ($W_E$)", 0.2, 2.5, float(st.session_state.weight_effort), step=0.1, key="rice_we")
 
             if (w_reach != st.session_state.weight_reach or 
                 w_impact != st.session_state.weight_impact or 
@@ -799,7 +786,6 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 st.session_state.weight_confidence = w_conf
                 st.session_state.weight_effort = w_eff
                 st.session_state.active_preset = "Custom Weights"
-                
                 ranking_df = rank_features(
                     df, weight_reach=w_reach, weight_impact=w_impact, 
                     weight_confidence=w_conf, weight_effort=w_eff
@@ -808,7 +794,6 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 roadmap_df = generate_ai_roadmap(df, ranking_df, st.session_state.cluster_keywords, st.session_state.cluster_summaries)
                 st.session_state.roadmap_df = roadmap_df
                 st.session_state.dependency_df = map_feature_dependencies(roadmap_df)
-                st.rerun()
 
         # Matrix and Effort Tuning
         col_matrix, col_sliders = st.columns([7, 5])
@@ -818,17 +803,17 @@ if st.session_state.processed_data and st.session_state.df is not None:
             
         with col_sliders:
             st.markdown("#### 🛠️ Fine-Tune Development Effort (1–10)")
-            st.caption("Live sensitivity analysis: tweak effort points to recompute priority:")
+            st.caption("Adjust effort points (stable order without jumping):")
             
-            recalculate = False
-            for idx in range(min(7, len(roadmap_df))):
-                row = roadmap_df.iloc[idx]
-                theme = row['Theme']
-                curr_eff = float(row['Effort'])
-                new_eff = st.slider(f"{theme}", 1.0, 10.0, curr_eff, step=0.5, key=f"eff_slider_{idx}")
+            # Use stable order by theme name to prevent sliders from jumping positions
+            themes_sorted = sorted(roadmap_df['Theme'].unique())[:6]
+            for t_name in themes_sorted:
+                r_item = roadmap_df[roadmap_df['Theme'] == t_name].iloc[0]
+                curr_eff = float(r_item['Effort'])
+                new_eff = st.slider(f"{t_name}", 1.0, 10.0, curr_eff, step=0.5, key=f"eff_fix_{r_item['ID']}")
                 if new_eff != curr_eff:
-                    roadmap_df.at[roadmap_df.index[idx], 'Effort'] = new_eff
-                    c_id = row['ID']
+                    c_id = r_item['ID']
+                    roadmap_df.loc[roadmap_df['ID'] == c_id, 'Effort'] = new_eff
                     reach = ranking_df.loc[ranking_df['Cluster'] == c_id, 'Reach'].values[0]
                     impact = ranking_df.loc[ranking_df['Cluster'] == c_id, 'Impact'].values[0]
                     conf = ranking_df.loc[ranking_df['Cluster'] == c_id, 'Confidence'].values[0]
@@ -838,14 +823,10 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.session_state.weight_confidence, st.session_state.weight_effort
                     )
                     ranking_df.loc[ranking_df['Cluster'] == c_id, 'RICE Score'] = new_score
-                    roadmap_df.at[roadmap_df.index[idx], 'Score'] = new_score
-                    roadmap_df.at[roadmap_df.index[idx], 'RICE_Score'] = new_score
-                    recalculate = True
-                    
-            if recalculate:
-                roadmap_df = roadmap_df.sort_values(by='Score', ascending=False).reset_index(drop=True)
-                st.session_state.roadmap_df = roadmap_df
-                st.session_state.dependency_df = map_feature_dependencies(roadmap_df)
+                    roadmap_df.loc[roadmap_df['ID'] == c_id, 'Score'] = new_score
+                    roadmap_df.loc[roadmap_df['ID'] == c_id, 'RICE_Score'] = new_score
+                    st.session_state.ranking_df = ranking_df
+                    st.session_state.roadmap_df = roadmap_df
 
         st.markdown("---")
         st.markdown("### 🧮 Step-by-Step RICE Calculation & Explanations")
@@ -864,11 +845,11 @@ if st.session_state.processed_data and st.session_state.df is not None:
             w_c = st.session_state.weight_confidence
             w_e = st.session_state.weight_effort
             
-            with st.expander(f"#{i+1} **{theme_title}** — RICE Score: **{c_score}** (Click to view full math derivation)", expanded=(i==0)):
+            with st.expander(f"#{i+1} **{theme_title}** — RICE Score: **{c_score}**", expanded=(i==0)):
                 st.markdown(f"""
                 <div class="rice-math-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 1.1rem; font-weight: 800; color: #4f46e5;">RICE = {c_score}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 1.05rem; font-weight: 800; color: #4f46e5;">RICE = {c_score}</span>
                         <span class="badge-pill pill-now">Rank #{i+1}</span>
                     </div>
                     <div class="rice-math-step">
@@ -891,7 +872,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         Estimated engineering difficulty based on {r_row['Dominant Category']} domain complexity.
                         <br><em>Effective Weighted Effort:</em> {c_effort} × {w_e} = <strong>{round(c_effort * w_e, 2)}</strong>
                     </div>
-                    <div style="background: #ede9fe; padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #5b21b6;">
+                    <div style="background: #ede9fe; padding: 8px 12px; border-radius: 6px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #5b21b6;">
                         Formula: ({round(c_reach * w_r, 1)} × {round(c_impact * w_i, 2)} × {round(c_conf * w_c, 2)}) / {round(c_effort * w_e, 2)} = <strong>{c_score}</strong>
                     </div>
                 </div>
@@ -943,7 +924,8 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 "📥 Export Roadmap (.md)",
                 data=roadmap_md,
                 file_name="product_roadmap_now_next_later.md",
-                mime="text/markdown"
+                mime="text/markdown",
+                use_container_width=True
             )
             
         col_now, col_next, col_later = st.columns(3)
@@ -964,17 +946,17 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 with st.container():
                     st.markdown(f"""
                     <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
-                            <strong style="font-size: 0.95rem;">{item['Theme']}</strong>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+                            <strong style="font-size: 0.92rem;">{item['Theme']}</strong>
                             <span class="badge-pill pill-score">RICE {item['Score']}</span>
                         </div>
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
                             <span class="badge-pill pill-team">👥 {item['Assigned Team']}</span>
                             <span class="badge-pill pill-team">⚡ {item['Effort']} pts</span>
                             <span class="badge-pill pill-team">💬 {item['Volume']} reqs</span>
                         </div>
-                        <div style="font-size: 0.82rem; color: #475569; line-height: 1.4;">
-                            {item['Summary'][:100]}...
+                        <div style="font-size: 0.8rem; color: #475569; line-height: 1.35;">
+                            {item['Summary'][:95]}...
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -986,7 +968,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.session_state.roadmap_df = move_roadmap_item(roadmap_df, item['ID'], new_stg)
                         st.session_state.dependency_df = map_feature_dependencies(st.session_state.roadmap_df)
                         st.rerun()
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
                     
         with col_next:
             st.markdown(f"""
@@ -1000,17 +982,17 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 with st.container():
                     st.markdown(f"""
                     <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
-                            <strong style="font-size: 0.95rem;">{item['Theme']}</strong>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+                            <strong style="font-size: 0.92rem;">{item['Theme']}</strong>
                             <span class="badge-pill pill-score">RICE {item['Score']}</span>
                         </div>
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
                             <span class="badge-pill pill-team">👥 {item['Assigned Team']}</span>
                             <span class="badge-pill pill-team">⚡ {item['Effort']} pts</span>
                             <span class="badge-pill pill-team">💬 {item['Volume']} reqs</span>
                         </div>
-                        <div style="font-size: 0.82rem; color: #475569; line-height: 1.4;">
-                            {item['Summary'][:100]}...
+                        <div style="font-size: 0.8rem; color: #475569; line-height: 1.35;">
+                            {item['Summary'][:95]}...
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1022,7 +1004,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.session_state.roadmap_df = move_roadmap_item(roadmap_df, item['ID'], new_stg)
                         st.session_state.dependency_df = map_feature_dependencies(st.session_state.roadmap_df)
                         st.rerun()
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
                     
         with col_later:
             st.markdown(f"""
@@ -1036,17 +1018,17 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 with st.container():
                     st.markdown(f"""
                     <div class="kanban-card">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
-                            <strong style="font-size: 0.95rem;">{item['Theme']}</strong>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+                            <strong style="font-size: 0.92rem;">{item['Theme']}</strong>
                             <span class="badge-pill pill-score">RICE {item['Score']}</span>
                         </div>
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
                             <span class="badge-pill pill-team">👥 {item['Assigned Team']}</span>
                             <span class="badge-pill pill-team">⚡ {item['Effort']} pts</span>
                             <span class="badge-pill pill-team">💬 {item['Volume']} reqs</span>
                         </div>
-                        <div style="font-size: 0.82rem; color: #475569; line-height: 1.4;">
-                            {item['Summary'][:100]}...
+                        <div style="font-size: 0.8rem; color: #475569; line-height: 1.35;">
+                            {item['Summary'][:95]}...
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1058,7 +1040,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.session_state.roadmap_df = move_roadmap_item(roadmap_df, item['ID'], new_stg)
                         st.session_state.dependency_df = map_feature_dependencies(st.session_state.roadmap_df)
                         st.rerun()
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
 
     # ----------------- TAB 3: DEPENDENCY ARCHITECTURE ----------------- #
     with tab_dependencies:
@@ -1264,7 +1246,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         with copilot_sub2:
             st.markdown("#### Automated PRD Synthesizer")
             theme_choice = st.selectbox("Select Feature Theme to Generate PRD:", roadmap_df['Theme'].tolist(), key="prd_theme_select")
-            if st.button("✨ Synthesize PRD", key="gen_prd_btn"):
+            if st.button("✨ Synthesize PRD", key="gen_prd_btn", use_container_width=True):
                 with st.spinner("Drafting comprehensive PRD..."):
                     c_id = roadmap_df[roadmap_df['Theme'] == theme_choice]['ID'].values[0]
                     c_texts = " | ".join(df[df['Cluster'] == c_id]['Request_Text'].head(12).tolist())
@@ -1282,7 +1264,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         with copilot_sub3:
             st.markdown("#### Customer-Facing Release Notes")
             rn_choice = st.selectbox("Select Feature Theme for Release Notes:", roadmap_df['Theme'].tolist(), key="rn_theme_select")
-            if st.button("✨ Draft Release Notes", key="gen_rn_btn"):
+            if st.button("✨ Draft Release Notes", key="gen_rn_btn", use_container_width=True):
                 with st.spinner("Drafting public release notes..."):
                     row = roadmap_df[roadmap_df['Theme'] == rn_choice].iloc[0]
                     rn_out = generate_release_notes(
@@ -1298,36 +1280,32 @@ if st.session_state.processed_data and st.session_state.df is not None:
 else:
     # ----------------- Clean SaaS Product Empty State ----------------- #
     st.markdown("""
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 70px 30px; text-align: center; max-width: 800px; margin: 40px auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
-        <div style="font-size: 3.5rem; margin-bottom: 16px;">⚡</div>
-        <h2 style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 10px;">Welcome to Prioritize.ai Workspace</h2>
-        <p style="color: #64748b; font-size: 1rem; max-width: 580px; margin: 0 auto 28px auto; line-height: 1.6;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 60px 30px; text-align: center; max-width: 800px; margin: 30px auto; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);">
+        <div style="font-size: 3rem; margin-bottom: 12px;">⚡</div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Prioritize.ai Workspace</h2>
+        <p style="color: #64748b; font-size: 0.95rem; max-width: 540px; margin: 0 auto 24px auto; line-height: 1.5;">
             Transform scattered customer feedback tickets into clear, evidence-backed roadmaps.
-            Load the pre-built <strong>1,000 Enterprise Feedback Sample</strong> in the sidebar to test out the full platform.
+            Load the pre-built <strong>1,000 Enterprise Feedback Sample</strong> in the sidebar to get started.
         </p>
-        <div class="discovery-grid" style="text-align: left; margin-bottom: 24px;">
+        <div class="discovery-grid" style="text-align: left; margin-bottom: 20px;">
             <div class="discovery-card">
-                <div class="discovery-icon">🎯</div>
-                <div class="discovery-title">Smart RICE Scoring</div>
+                <div class="discovery-title">🎯 Smart RICE Scoring</div>
                 <div class="discovery-desc">Objective prioritization with Reach, Impact, Confidence & Effort.</div>
             </div>
             <div class="discovery-card">
-                <div class="discovery-icon">🗺️</div>
-                <div class="discovery-title">Interactive Roadmap</div>
-                <div class="discovery-desc">Now / Next / Later Kanban board with live drag-and-drop movement.</div>
+                <div class="discovery-title">🗺️ Interactive Roadmap</div>
+                <div class="discovery-desc">Now / Next / Later Kanban board with live horizon movement.</div>
             </div>
             <div class="discovery-card">
-                <div class="discovery-icon">🔗</div>
-                <div class="discovery-title">Dependency Mapping</div>
+                <div class="discovery-title">🔗 Dependency Mapping</div>
                 <div class="discovery-desc">Prerequisite graphs and blocker detection across systems.</div>
             </div>
             <div class="discovery-card">
-                <div class="discovery-icon">📈</div>
-                <div class="discovery-title">Demand Forecasting</div>
+                <div class="discovery-title">📈 Demand Forecasting</div>
                 <div class="discovery-desc">Velocity tracking and 30-day customer demand momentum signals.</div>
             </div>
         </div>
-        <p style="color: #94a3b8; font-size: 0.82rem;">
+        <p style="color: #94a3b8; font-size: 0.8rem;">
             Supported CSV columns: <code>Request_Text</code>, <code>Category</code>, <code>Upvotes</code>, <code>Date</code>, <code>Customer_Segment</code>, <code>Source</code>
         </p>
     </div>
