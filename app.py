@@ -31,13 +31,13 @@ from utils.visualization import (
 
 # ----------------- Streamlit Page Configuration ----------------- #
 st.set_page_config(
-    page_title="Prioritize.io | Enterprise AI Product Strategy SaaS",
+    page_title="Prioritize.ai | Enterprise SaaS Feedback Intelligence",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ----------------- Premium SaaS Product CSS Design System ----------------- #
+# ----------------- Premium Responsive SaaS CSS System ----------------- #
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -51,14 +51,16 @@ st.markdown("""
     /* Top SaaS App Navigation Bar */
     .saas-topbar {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 14px;
         padding: 14px 24px;
-        margin-bottom: 22px;
+        margin-bottom: 20px;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+        gap: 12px;
     }
     .saas-brand {
         display: flex;
@@ -69,13 +71,13 @@ st.markdown("""
         background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         color: white;
         font-weight: 900;
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         padding: 6px 12px;
         border-radius: 10px;
         box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
     }
     .brand-title {
-        font-size: 1.25rem;
+        font-size: 1.3rem;
         font-weight: 800;
         letter-spacing: -0.02em;
         color: #0f172a;
@@ -91,7 +93,7 @@ st.markdown("""
     .saas-user-pill {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         background: #f1f5f9;
         border: 1px solid #e2e8f0;
         padding: 6px 14px;
@@ -109,10 +111,46 @@ st.markdown("""
         box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
     }
     
-    /* Executive Metric Cards */
-    .kpi-row {
+    /* Feature Discovery Hub Grid */
+    .discovery-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .discovery-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .discovery-card:hover {
+        transform: translateY(-2px);
+        border-color: #818cf8;
+        box-shadow: 0 6px 12px -2px rgba(79, 70, 229, 0.08);
+    }
+    .discovery-icon {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+    }
+    .discovery-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+    .discovery-desc {
+        font-size: 0.78rem;
+        color: #64748b;
+        line-height: 1.4;
+    }
+    
+    /* Executive Metric Cards (Responsive Grid) */
+    .kpi-grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
         gap: 16px;
         margin-bottom: 24px;
     }
@@ -219,6 +257,25 @@ st.markdown("""
     .pill-team { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
     .pill-score { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
     
+    /* RICE Step-by-Step Breakdown Card */
+    .rice-math-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .rice-math-step {
+        background: #f8fafc;
+        border: 1px solid #edf2f7;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 6px 0;
+        font-size: 0.84rem;
+        color: #334155;
+    }
+    
     /* Alert Banners */
     .saas-alert-banner {
         background: #ffffff;
@@ -242,28 +299,37 @@ st.markdown("""
         color: #334155;
     }
     
-    /* Streamlit Tabs Polish */
+    /* Streamlit Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 6px;
         background-color: #ffffff;
-        padding: 8px;
+        padding: 6px;
         border-radius: 12px;
         border: 1px solid #e2e8f0;
         margin-bottom: 20px;
+        flex-wrap: wrap;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 42px;
-        white-space: pre-wrap;
+        height: 40px;
+        white-space: nowrap;
         border-radius: 8px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 600;
         color: #475569;
-        padding: 8px 16px;
+        padding: 6px 14px;
     }
     .stTabs [aria-selected="true"] {
         background-color: #4f46e5 !important;
         color: #ffffff !important;
         box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+    }
+    
+    /* Responsive Media Queries */
+    @media (max-width: 768px) {
+        .saas-topbar { flex-direction: column; align-items: flex-start; }
+        .kpi-row { grid-template-columns: 1fr; }
+        .discovery-grid { grid-template-columns: 1fr; }
+        .stTabs [data-baseweb="tab"] { font-size: 0.75rem; padding: 4px 8px; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -305,13 +371,13 @@ st.markdown("""
         <div class="brand-icon">⚡</div>
         <div>
             <div class="brand-title">Prioritize.ai</div>
-            <div class="brand-tagline">Enterprise Product Intelligence & Discovery Platform</div>
+            <div class="brand-tagline">Enterprise AI Product Strategy & Discovery SaaS</div>
         </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <div class="saas-user-pill">
             <span class="status-dot"></span>
-            <span>Acme Cloud (Prod)</span>
+            <span>Acme Cloud Workspace</span>
             <span style="color: #94a3b8;">•</span>
             <span style="color: #4f46e5; font-weight: 700;">Enterprise Tier</span>
         </div>
@@ -330,7 +396,7 @@ with st.sidebar:
     hf_token = st.text_input(
         "🔑 Hugging Face Token (Optional)", 
         type="password", 
-        help="Enables advanced smolagents CodeAgent & Qwen-2.5 models. If left blank, our deterministic intelligent engine runs seamlessly."
+        help="Enables advanced smolagents CodeAgent & Qwen-2.5 models. If left blank, local intelligent AI engine runs seamlessly."
     )
     
     st.markdown("---")
@@ -338,7 +404,7 @@ with st.sidebar:
     uploaded_file = st.file_uploader(
         "Upload Customer Feedback (CSV)", 
         type=["csv"], 
-        help="Upload CSV with feedback tickets. Supported columns: Request_Text, Category, Upvotes, Date, Customer_Segment, Source."
+        help="Upload CSV with customer feedback tickets. Supports columns: Request_Text, Category, Upvotes, Date, Customer_Segment, Source."
     )
     
     col_load_sample, col_clear = st.columns(2)
@@ -353,7 +419,7 @@ with st.sidebar:
                 st.error("Sample dataset not found.")
                 
     with col_clear:
-        if st.button("🔄 Reset"):
+        if st.button("🔄 Reset App"):
             for k in state_defaults.keys():
                 st.session_state[k] = state_defaults[k]
             st.rerun()
@@ -460,7 +526,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
     segment_summary_df = st.session_state.segment_summary_df
     alerts = st.session_state.alerts
     
-    # ----------------- Sidebar: Advanced SaaS Filters & Downloads ----------------- #
+    # ----------------- Sidebar: Multi-Dimensional Filter Bar ----------------- #
     with st.sidebar:
         st.markdown("---")
         st.subheader("🔍 Multi-Dimensional Filter Bar")
@@ -545,7 +611,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
             mime="text/csv"
         )
 
-    # ----------------- Executive KPI Metrics Strip ----------------- #
+    # ----------------- Executive Metric Cards Strip ----------------- #
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     
     with col_kpi1:
@@ -605,9 +671,63 @@ if st.session_state.processed_data and st.session_state.df is not None:
         </div>
         """, unsafe_allow_html=True)
 
+    # ----------------- Feature Discovery Quick Hub ----------------- #
+    st.markdown("""
+    <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">
+            ⚡ Feature Discovery Hub
+        </span>
+        <span style="font-size: 0.8rem; color: #94a3b8;">
+            8 Active SaaS Intelligence Modules
+        </span>
+    </div>
+    <div class="discovery-grid">
+        <div class="discovery-card">
+            <div class="discovery-icon">🎯</div>
+            <div class="discovery-title">RICE Decision Engine</div>
+            <div class="discovery-desc">Explainable Reach, Impact, Confidence & Effort formulas with custom sensitivity sliders.</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">🗺️</div>
+            <div class="discovery-title">Kanban Roadmap</div>
+            <div class="discovery-desc">Interactive Now / Next / Later board with drag/select stage movement and team routing.</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">🔗</div>
+            <div class="discovery-title">Dependency Architecture</div>
+            <div class="discovery-desc">Prerequisite mapping and automated blocker warnings before sprint commitment.</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">💡</div>
+            <div class="discovery-title">Evidence Insights</div>
+            <div class="discovery-desc">Verbatim customer feedback quotes, tier breakdowns, and transparent AI rationales.</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">📈</div>
+            <div class="discovery-title">Demand Velocity Trends</div>
+            <div class="discovery-desc">60-day momentum tracking and 30-day forward demand volume projections.</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">👥</div>
+            <div class="discovery-title">Segment Intelligence</div>
+            <div class="discovery-desc">Compare Enterprise vs Free customer priorities and revenue-weighted impact (4x).</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">🔍</div>
+            <div class="discovery-title">Deduplication Explorer</div>
+            <div class="discovery-desc">Dense vector FAISS cosine clustering to merge duplicate backlog tickets.</div>
+        </div>
+        <div class="discovery-card">
+            <div class="discovery-icon">🤖</div>
+            <div class="discovery-title">AI Product Copilot</div>
+            <div class="discovery-desc">Instant semantic search, 1-click PRD generation, and customer release notes.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     # ----------------- Emerging Signals Banner ----------------- #
     if alerts:
-        with st.expander(f"🔔 **Real-Time Intelligence Alerts ({len(alerts)} Signals Active)**", expanded=True):
+        with st.expander(f"🔔 **Real-Time Intelligence Alerts ({len(alerts)} Signals Active)**", expanded=False):
             for alert in alerts[:3]:
                 st.markdown(
                     f"""<div class="saas-alert-banner">
@@ -637,10 +757,10 @@ if st.session_state.processed_data and st.session_state.df is not None:
         "🤖 AI Product Copilot"
     ])
 
-    # ----------------- TAB 1: RICE DECISION ENGINE ----------------- #
+    # ----------------- TAB 1: RICE DECISION ENGINE & EXPLAINABILITY ----------------- #
     with tab_rice:
-        st.markdown("### 🎯 Smart Priority Score (RICE) Engine")
-        st.caption("Score features objectively with the formula: $(\\text{Reach} \\times W_R) \\times (\\text{Impact} \\times W_I) \\times (\\text{Confidence} \\times W_C) / (\\text{Effort} \\times W_E)$")
+        st.markdown("### 🎯 Smart Priority Score (RICE) Engine & Step-by-Step Explainability")
+        st.caption("Calculate transparent, objective feature scores using Reach, Impact, Confidence, and Effort.")
         
         # Strategic Presets & Custom Weights
         with st.expander("⚖️ Strategic Weight Presets & Sensitivity Sliders", expanded=True):
@@ -728,7 +848,57 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 st.session_state.dependency_df = map_feature_dependencies(roadmap_df)
 
         st.markdown("---")
-        st.markdown("### 📋 RICE Priority Breakdown Table")
+        st.markdown("### 🧮 Step-by-Step RICE Calculation & Explanations")
+        st.caption("Inspect the exact mathematical arithmetic and qualitative evidence behind every feature's score:")
+        
+        for i in range(min(5, len(ranking_df))):
+            r_row = ranking_df.iloc[i]
+            theme_title = r_row['Dominant Category']
+            c_reach = r_row['Reach']
+            c_impact = r_row['Impact']
+            c_conf = r_row['Confidence']
+            c_effort = r_row['Effort']
+            c_score = r_row['RICE Score']
+            w_r = st.session_state.weight_reach
+            w_i = st.session_state.weight_impact
+            w_c = st.session_state.weight_confidence
+            w_e = st.session_state.weight_effort
+            
+            with st.expander(f"#{i+1} **{theme_title}** — RICE Score: **{c_score}** (Click to view full math derivation)", expanded=(i==0)):
+                st.markdown(f"""
+                <div class="rice-math-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 1.1rem; font-weight: 800; color: #4f46e5;">RICE = {c_score}</span>
+                        <span class="badge-pill pill-now">Rank #{i+1}</span>
+                    </div>
+                    <div class="rice-math-step">
+                        <strong>1. Reach ({c_reach:,} affected users):</strong> 
+                        Derived from {r_row['Request Count']} feedback requests + {r_row['Total Upvotes']:,} upvotes + {r_row['Enterprise Count']} enterprise accounts.
+                        <br><em>Effective Weighted Reach:</em> {c_reach} × {w_r} = <strong>{round(c_reach * w_r, 1)}</strong>
+                    </div>
+                    <div class="rice-math-step">
+                        <strong>2. Impact ({c_impact} - {r_row['Impact_Desc']}):</strong> 
+                        Quantified from {r_row['Negative Ratio']}% negative customer friction and churn severity.
+                        <br><em>Effective Weighted Impact:</em> {c_impact} × {w_i} = <strong>{round(c_impact * w_i, 2)}</strong>
+                    </div>
+                    <div class="rice-math-step">
+                        <strong>3. Confidence ({int(c_conf*100)}% - {r_row['Confidence_Desc']}):</strong> 
+                        Statistical certainty based on feedback volume and keyword density.
+                        <br><em>Effective Weighted Confidence:</em> {c_conf} × {w_c} = <strong>{round(c_conf * w_c, 2)}</strong>
+                    </div>
+                    <div class="rice-math-step">
+                        <strong>4. Effort ({c_effort} points):</strong> 
+                        Estimated engineering difficulty based on {r_row['Dominant Category']} domain complexity.
+                        <br><em>Effective Weighted Effort:</em> {c_effort} × {w_e} = <strong>{round(c_effort * w_e, 2)}</strong>
+                    </div>
+                    <div style="background: #ede9fe; padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #5b21b6;">
+                        Formula: ({round(c_reach * w_r, 1)} × {round(c_impact * w_i, 2)} × {round(c_conf * w_c, 2)}) / {round(c_effort * w_e, 2)} = <strong>{c_score}</strong>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown("### 📋 Complete RICE Priority Table")
         
         display_rice_table = ranking_df[[
             'Dominant Category', 'RICE Score', 'Base RICE Score', 'Reach', 'Impact', 'Impact_Desc', 
@@ -761,7 +931,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
             use_container_width=True
         )
 
-    # ----------------- TAB 2: INTERACTIVE ROADMAP BOARD ----------------- #
+    # ----------------- TAB 2: INTERACTIVE ROADMAP BOARD (KANBAN) ----------------- #
     with tab_roadmap:
         st.markdown("### 🗺️ Interactive Now / Next / Later Roadmap Board")
         st.caption("Organize features into execution horizons. Reassign horizons dynamically with immediate state persistence.")
@@ -785,7 +955,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         with col_now:
             st.markdown(f"""
             <div class="kanban-col-header" style="border-top: 3px solid #ef4444;">
-                <span>🔥 NOW</span>
+                <span>🔥 NOW (1–3 Months)</span>
                 <span class="badge-pill pill-now">{len(now_items)} Items</span>
             </div>
             """, unsafe_allow_html=True)
@@ -798,7 +968,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                             <strong style="font-size: 0.95rem;">{item['Theme']}</strong>
                             <span class="badge-pill pill-score">RICE {item['Score']}</span>
                         </div>
-                        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
                             <span class="badge-pill pill-team">👥 {item['Assigned Team']}</span>
                             <span class="badge-pill pill-team">⚡ {item['Effort']} pts</span>
                             <span class="badge-pill pill-team">💬 {item['Volume']} reqs</span>
@@ -821,7 +991,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         with col_next:
             st.markdown(f"""
             <div class="kanban-col-header" style="border-top: 3px solid #f59e0b;">
-                <span>⭐ NEXT</span>
+                <span>⭐ NEXT (3–6 Months)</span>
                 <span class="badge-pill pill-next">{len(next_items)} Items</span>
             </div>
             """, unsafe_allow_html=True)
@@ -834,7 +1004,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                             <strong style="font-size: 0.95rem;">{item['Theme']}</strong>
                             <span class="badge-pill pill-score">RICE {item['Score']}</span>
                         </div>
-                        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
                             <span class="badge-pill pill-team">👥 {item['Assigned Team']}</span>
                             <span class="badge-pill pill-team">⚡ {item['Effort']} pts</span>
                             <span class="badge-pill pill-team">💬 {item['Volume']} reqs</span>
@@ -857,7 +1027,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         with col_later:
             st.markdown(f"""
             <div class="kanban-col-header" style="border-top: 3px solid #3b82f6;">
-                <span>🧊 LATER</span>
+                <span>🧊 LATER (6–12 Months)</span>
                 <span class="badge-pill pill-later">{len(later_items)} Items</span>
             </div>
             """, unsafe_allow_html=True)
@@ -870,7 +1040,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                             <strong style="font-size: 0.95rem;">{item['Theme']}</strong>
                             <span class="badge-pill pill-score">RICE {item['Score']}</span>
                         </div>
-                        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
                             <span class="badge-pill pill-team">👥 {item['Assigned Team']}</span>
                             <span class="badge-pill pill-team">⚡ {item['Effort']} pts</span>
                             <span class="badge-pill pill-team">💬 {item['Volume']} reqs</span>
@@ -1135,18 +1305,26 @@ else:
             Transform scattered customer feedback tickets into clear, evidence-backed roadmaps.
             Load the pre-built <strong>1,000 Enterprise Feedback Sample</strong> in the sidebar to test out the full platform.
         </p>
-        <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 30px;">
-            <div style="background: #f1f5f9; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; color: #475569;">
-                🎯 Smart RICE Scoring
+        <div class="discovery-grid" style="text-align: left; margin-bottom: 24px;">
+            <div class="discovery-card">
+                <div class="discovery-icon">🎯</div>
+                <div class="discovery-title">Smart RICE Scoring</div>
+                <div class="discovery-desc">Objective prioritization with Reach, Impact, Confidence & Effort.</div>
             </div>
-            <div style="background: #f1f5f9; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; color: #475569;">
-                🗺️ Now / Next / Later Board
+            <div class="discovery-card">
+                <div class="discovery-icon">🗺️</div>
+                <div class="discovery-title">Interactive Roadmap</div>
+                <div class="discovery-desc">Now / Next / Later Kanban board with live drag-and-drop movement.</div>
             </div>
-            <div style="background: #f1f5f9; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; color: #475569;">
-                🔗 Dependency Blocker Detection
+            <div class="discovery-card">
+                <div class="discovery-icon">🔗</div>
+                <div class="discovery-title">Dependency Mapping</div>
+                <div class="discovery-desc">Prerequisite graphs and blocker detection across systems.</div>
             </div>
-            <div style="background: #f1f5f9; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; color: #475569;">
-                📈 Demand Forecasting
+            <div class="discovery-card">
+                <div class="discovery-icon">📈</div>
+                <div class="discovery-title">Demand Forecasting</div>
+                <div class="discovery-desc">Velocity tracking and 30-day customer demand momentum signals.</div>
             </div>
         </div>
         <p style="color: #94a3b8; font-size: 0.82rem;">
