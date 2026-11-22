@@ -1,7 +1,13 @@
 [theme]
 base="light"
-primaryColor="#8e2de2"
-backgroundColor="#fdfbfb"
-secondaryBackgroundColor="#ebedee"
-textColor="#1f2937"
+primaryColor="#4f46e5"
+backgroundColor="#f8fafc"
+secondaryBackgroundColor="#ffffff"
+textColor="#0f172a"
 font="sans serif"
+
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+maxUploadSize = 200
