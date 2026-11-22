@@ -16,6 +16,37 @@ DOMAIN_EFFORT_ESTIMATES = {
     "General": 5.0
 }
 
+SCORING_PRESETS = {
+    "Balanced (Standard RICE)": {
+        "weight_reach": 1.0,
+        "weight_impact": 1.0,
+        "weight_confidence": 1.0,
+        "weight_effort": 1.0,
+        "description": "Standard product framework balancing reach, impact, confidence, and effort equally."
+    },
+    "Customer Friction & Churn First": {
+        "weight_reach": 1.1,
+        "weight_impact": 1.8,
+        "weight_confidence": 1.0,
+        "weight_effort": 0.8,
+        "description": "Prioritizes high-impact friction points and negative sentiment to reduce churn."
+    },
+    "Quick Wins & High ROI": {
+        "weight_reach": 0.9,
+        "weight_impact": 1.4,
+        "weight_confidence": 1.0,
+        "weight_effort": 1.8,
+        "description": "Heavily penalizes development effort to accelerate shipping high-ROI quick wins."
+    },
+    "Enterprise ARR Expansion": {
+        "weight_reach": 1.7,
+        "weight_impact": 1.6,
+        "weight_confidence": 1.2,
+        "weight_effort": 0.9,
+        "description": "Emphasizes enterprise tier demand to maximize Annual Contract Value (ACV)."
+    }
+}
+
 def estimate_theme_effort(category_name: str) -> float:
     """Estimates baseline engineering effort (1-10) based on domain complexity."""
     for domain, effort in DOMAIN_EFFORT_ESTIMATES.items():
@@ -23,18 +54,41 @@ def estimate_theme_effort(category_name: str) -> float:
             return effort
     return 5.0
 
-def calculate_rice_score(reach: float, impact: float, confidence: float, effort: float) -> float:
+def calculate_rice_score(
+    reach: float, 
+    impact: float, 
+    confidence: float, 
+    effort: float,
+    weight_reach: float = 1.0,
+    weight_impact: float = 1.0,
+    weight_confidence: float = 1.0,
+    weight_effort: float = 1.0
+) -> float:
     """
-    Calculates RICE Score: (Reach * Impact * Confidence) / Effort.
-    Effort is clamped to minimum 0.5 to prevent division by zero.
+    Calculates RICE Score with customizable component weights:
+    Score = ((Reach * W_R) * (Impact * W_I) * (Confidence * W_C)) / (Effort * W_E)
+    Effort denominator is clamped to min 0.5 to prevent division by zero.
     """
-    safe_effort = max(0.5, float(effort))
-    score = (float(reach) * float(impact) * float(confidence)) / safe_effort
+    safe_effort = max(0.5, float(effort) * max(0.1, float(weight_effort)))
+    effective_reach = float(reach) * max(0.1, float(weight_reach))
+    effective_impact = float(impact) * max(0.1, float(weight_impact))
+    effective_conf = float(confidence) * max(0.1, float(weight_confidence))
+    
+    score = (effective_reach * effective_impact * effective_conf) / safe_effort
     return round(score, 1)
 
-def rank_features(df, cluster_col='Cluster', upvotes_col='Upvotes'):
+def rank_features(
+    df, 
+    cluster_col='Cluster', 
+    upvotes_col='Upvotes',
+    weight_reach: float = 1.0,
+    weight_impact: float = 1.0,
+    weight_confidence: float = 1.0,
+    weight_effort: float = 1.0
+):
     """
     Calculates Smart Priority Scores using the RICE framework for each feature cluster.
+    Supports custom scoring weights for Reach, Impact, Confidence, and Effort.
     Provides complete transparent, explainable breakdowns of Reach, Impact, Confidence, and Effort.
     """
     ranking_data = []
@@ -45,7 +99,6 @@ def rank_features(df, cluster_col='Cluster', upvotes_col='Upvotes'):
         total_upvotes = int(group[upvotes_col].sum()) if upvotes_col in group.columns else size
         
         # 1. REACH: Estimated monthly affected users
-        # Weighted by user volume, upvotes, and enterprise customer presence
         ent_count = len(group[group['Customer_Segment'] == 'Enterprise']) if 'Customer_Segment' in group.columns else 0
         pro_count = len(group[group['Customer_Segment'] == 'Pro']) if 'Customer_Segment' in group.columns else 0
         free_count = len(group[group['Customer_Segment'] == 'Free']) if 'Customer_Segment' in group.columns else 0
@@ -53,7 +106,6 @@ def rank_features(df, cluster_col='Cluster', upvotes_col='Upvotes'):
         reach = (size * 10) + (total_upvotes * 2) + (ent_count * 20) + (pro_count * 5)
         
         # 2. IMPACT: Business Impact factor (0.5 to 3.0)
-        # Higher if many negative sentiments (severe user friction/pain point) or high enterprise demand
         neg_count = len(group[group['Sentiment'] == 'NEGATIVE']) if 'Sentiment' in group.columns else 0
         neg_ratio = neg_count / size if size > 0 else 0
         ent_ratio = ent_count / size if size > 0 else 0
@@ -75,7 +127,6 @@ def rank_features(df, cluster_col='Cluster', upvotes_col='Upvotes'):
             impact_desc = "Medium (Standard Improvement)"
             
         # 3. CONFIDENCE: Statistical confidence (50% to 100%, stored as 0.50 to 1.0)
-        # More requests = higher statistical confidence
         if size >= 40:
             confidence = 1.0
             conf_desc = "100% (Very High Feedback Volume)"
@@ -96,15 +147,21 @@ def rank_features(df, cluster_col='Cluster', upvotes_col='Upvotes'):
         dominant_category = group['Category'].mode()[0] if 'Category' in group.columns and not group['Category'].empty else "General"
         effort = estimate_theme_effort(dominant_category)
         
-        # 5. RICE SCORE
-        rice_score = calculate_rice_score(reach, impact, confidence, effort)
+        # 5. RICE SCORE (with weights)
+        rice_score = calculate_rice_score(
+            reach, impact, confidence, effort,
+            weight_reach, weight_impact, weight_confidence, weight_effort
+        )
+        
+        # Base RICE score (unweighted standard 1.0) for comparison
+        base_rice_score = calculate_rice_score(reach, impact, confidence, effort)
         
         # Explanation text
         explanation = (
-            f"Reach: {reach:,} affected users | "
-            f"Impact: {impact} ({impact_desc}) | "
-            f"Confidence: {int(confidence*100)}% ({conf_desc}) | "
-            f"Effort: {effort} pts ({dominant_category})"
+            f"Reach: {reach:,} (w={weight_reach}) | "
+            f"Impact: {impact} (w={weight_impact}, {impact_desc}) | "
+            f"Confidence: {int(confidence*100)}% (w={weight_confidence}) | "
+            f"Effort: {effort} pts (w={weight_effort}, {dominant_category})"
         )
         
         ranking_data.append({
@@ -118,6 +175,7 @@ def rank_features(df, cluster_col='Cluster', upvotes_col='Upvotes'):
             'Confidence_Desc': conf_desc,
             'Effort': effort,
             'RICE Score': rice_score,
+            'Base RICE Score': base_rice_score,
             'Popularity Score': rice_score, # backwards compatibility
             'Dominant Category': dominant_category,
             'Negative Ratio': round(neg_ratio * 100, 1),

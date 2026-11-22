@@ -1,65 +1,62 @@
 # 🚀 AI Feature Request Prioritizer
 
-An enterprise-grade, AI-powered product discovery and roadmap intelligence web application built with Python and Streamlit. It automates customer feedback analysis, detects duplicate requests using dense semantic vector search, clusters related feedback into cohesive strategic themes, calculates explainable **Smart Priority Scores (RICE)**, forecasts demand velocity momentum, breaks down customer segments, and auto-generates executive reports and roadmaps.
+An enterprise-grade, AI-powered product discovery and roadmap intelligence web application built with Python and Streamlit. It automates customer feedback analysis, detects duplicate requests using dense semantic vector search, clusters related feedback into cohesive strategic themes, calculates explainable **Smart Priority Scores (RICE)** with custom weights, maps architectural dependencies and blockers, forecasts demand velocity momentum, breaks down customer segments, and auto-generates executive reports and roadmaps.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Upgrades by Sprint
 
-### 1. 🎯 Smart Priority Score (RICE Framework)
-- Evaluates every feature request cluster across **Reach**, **Impact**, **Confidence**, and **Effort**:
-  $$\text{RICE Score} = \frac{\text{Reach} \times \text{Impact} \times \text{Confidence}}{\text{Effort}}$$
-- **Reach**: User exposure weighted by request volume, upvotes, and customer tiers.
-- **Impact**: Quantified from customer sentiment friction (severe pain points) and enterprise revenue exposure.
-- **Confidence**: Statistical confidence based on feedback density and keyword cohesion.
-- **Effort**: Domain-based engineering complexity (1-10 scale), with real-time interactive sliders.
-- Interactive **Plotly Impact vs. Effort Matrix** showing *Quick Wins*, *Strategic Bets*, *Fill-ins*, and *Time Sinks*.
+### Sprint 1 — Decision Intelligence
+- **1. 🎯 Smart Priority Score (RICE Framework):**
+  Evaluates every feature request cluster across **Reach**, **Impact**, **Confidence**, and **Effort**:
+  $$\text{Weighted RICE Score} = \frac{(\text{Reach} \times W_R) \times (\text{Impact} \times W_I) \times (\text{Confidence} \times W_C)}{\text{Effort} \times W_E}$$
+  - **Reach:** User exposure weighted by request volume, upvotes, and customer tiers.
+  - **Impact:** Quantified from customer sentiment friction (severe pain points) and enterprise revenue exposure.
+  - **Confidence:** Statistical confidence based on feedback density and sample size.
+  - **Effort:** Domain-based engineering complexity (1-10 scale), with real-time interactive sliders.
+- **2. 💡 Evidence-Backed AI Insights:**
+  - Real customer feedback metrics (exact request counts, % share of total, upvote velocity).
+  - Customer sentiment distribution (% negative friction vs. positive).
+  - **Verbatim Customer Quotes:** Real customer quotes per theme with user tier and source channel metadata.
+- **3. ⚖️ Custom Scoring Weights & Strategic Presets:**
+  - Sliders for $W_{\text{Reach}}$, $W_{\text{Impact}}$, $W_{\text{Confidence}}$, and $W_{\text{Effort}}$.
+  - Built-in presets: *Balanced (Standard RICE)*, *Customer Friction & Churn First*, *Quick Wins & High ROI*, and *Enterprise ARR Expansion*.
 
-### 2. 💡 Evidence-Backed AI Insights
-- Transparent AI decision rationales explaining *why* a feature was recommended (e.g. churn risk, enterprise upsell, fast ROI).
-- Real quantitative metrics (exact feedback counts, share percentages, and segment breakdown).
-- **Verbatim Customer Quotes**: Representative user feedback highlighting real customer pain points.
-- Actionable recommendations customized for product managers and engineering leads.
+---
 
-### 3. 🗺️ AI Roadmap Generator (Now / Next / Later)
-- Automatically routes feature themes into execution horizons:
-  - 🔥 **NOW**: Immediate sprint candidates (Critical friction points, high RICE, low effort).
-  - ⭐ **NEXT**: Planned quarterly goals (Strategic differentiators, medium effort).
-  - 🧊 **LATER**: Horizon 3 & backlog (Exploratory or high-effort capabilities).
-- Identifies cross-functional team ownership (Backend, Frontend, Mobile, Security, Billing, API).
+### Sprint 2 — Product Planning
+- **4. 🗺️ Interactive Roadmap Builder (Now / Next / Later):**
+  - **Dynamic Stage Movement:** Reorder and move feature items between **🔥 NOW**, **⭐ NEXT**, and **🧊 LATER** with interactive dropdown selectors.
+  - Cross-functional team ownership tags (Backend, Frontend, Mobile, Security, Billing, API).
+  - One-click **Export Roadmap** to Markdown (`.md`) and CSV (`.csv`).
+- **5. 🔗 Dependency Mapping & Blocker Detection:**
+  - Identifies architectural prerequisites (e.g. *Security requires Authentication*; *Payments requires PCI Tokenization*).
+  - **Automated Blocker Warnings:** Detects execution order violations (e.g. if a feature in `NOW` depends on a prerequisite in `LATER`).
+  - Full dependency table showing prerequisite chains and downstream enablers.
+- **6. 📑 Executive Report Generator:**
+  - Downloadable executive decision briefs:
+    - **Executive Markdown Report** (`.md`)
+    - **Styled Executive HTML Dashboard** (`.html`)
+    - **Executive PDF Report** (`.pdf`) via ReportLab
+    - **Filtered Data CSV Export** (`.csv`)
 
-### 4. 🔍 Advanced Multi-Criteria Filters
-- Real-time multi-dimensional filtering across:
-  - **Date Range**: Rolling window filter.
-  - **Sentiment**: Positive, Neutral, Negative friction points.
-  - **Customer Segment**: Enterprise, Pro, Starter, and Free users.
-  - **Category**: Functional domains.
-  - **Source Channel**: Zendesk, Intercom, Sales Calls, Community, In-App.
-  - **Status**: Backlog, In Review, Planned, In Progress.
-- Live feedback counter: "Showing X of Y requests (Z% of dataset)".
+---
 
-### 5. 📈 Demand Trend Forecasting & Velocity
-- Tracks monthly customer request volume and sentiment trajectory.
-- **Momentum Tracker**: Identifies surging requests gaining velocity in the last 60 days before they hit peak volume.
-- 30-day forward demand projections.
-
-### 6. 👥 Customer Segment Analysis
-- Visualizes feedback distribution across Enterprise, Pro, Starter, and Free tiers.
-- Segment-specific top requested features: Discover what Enterprise clients need vs. Free tier self-serve users.
-- **Revenue-Weighted Prioritization**: Prioritize features by business ARR impact (Enterprise weighted 4x).
-
-### 7. 📑 Executive Report Generator
-- One-click downloadable executive decision briefs in multiple formats:
-  - **Executive Markdown Report** (`.md`)
-  - **Styled Executive HTML Dashboard** (`.html`)
-  - **Executive PDF Report** (`.pdf`) via ReportLab
-  - **Filtered Data CSV Export** (`.csv`)
-
-### 8. 🤖 AI Product Copilot
-- **Semantic Vector Search**: Natural language query interface powered by FAISS and Sentence Transformers.
-- **AI PRD Generator**: Synthesizes customer feedback into an actionable Product Requirements Document (PRD).
-- **AI Release Notes Generator**: Drafts engaging, customer-facing product release announcements.
-- **smolagents AI Analyst**: Conversational data analyst agent executing pandas queries on demand.
+### Sprint 3 — Analytics
+- **7. 📈 Demand Trend Forecasting & Velocity:**
+  - Tracks monthly customer request volume and sentiment trajectory.
+  - **Momentum Tracker:** Identifies surging requests gaining velocity in the last 60 days before they hit peak volume.
+  - 30-day forward demand projections.
+- **8. 👥 Customer Segment Analysis:**
+  - Visualizes feedback distribution across Enterprise, Pro, Starter, and Free tiers.
+  - Segment-specific top requested features: Discover what Enterprise clients need vs. Free tier self-serve users.
+  - **Revenue-Weighted Prioritization:** Calculates business ARR impact with Enterprise requests weighted 4x.
+- **9. 🚨 Emerging Feature Alerts:**
+  - Automatically flags critical signals:
+    - 🚀 **Velocity Surge:** Sudden spikes in demand velocity (+45% growth).
+    - 🚨 **Friction Spike:** Severe customer frustration and churn risks (>35% negative sentiment).
+    - 💼 **Enterprise Breakout:** Features disproportionately requested by Enterprise accounts.
+    - ⚡ **Sleeper Hits:** Niche features showing steep upward momentum.
 
 ---
 
@@ -112,13 +109,13 @@ An enterprise-grade, AI-powered product discovery and roadmap intelligence web a
 
 ## 🧪 Automated Testing
 
-Run the comprehensive test suite verifying preprocessing, RICE scoring, duplicate search, roadmapping, trends, segments, and PDF generation:
+Run the comprehensive test suite verifying preprocessing, RICE scoring, duplicate search, roadmapping, dependencies, alerts, trends, segments, and PDF generation:
 
 ```bash
 python -m pytest tests/test_pipeline.py -v
 ```
 
-All 13 core test suites pass with 100% test coverage.
+All 16 core test suites pass with 100% test coverage.
 
 ---
 
@@ -134,23 +131,27 @@ feature_request_prioritizer/
 ├── utils/
 │   ├── __init__.py             # Clean utils package interface
 │   ├── ai_agent.py             # smolagents AI copilot, PRD & release notes generator
+│   ├── alerts.py               # Emerging feature alerts (Velocity, Friction, Enterprise)
 │   ├── clustering.py           # KMeans semantic clustering
+│   ├── dependencies.py         # Architectural dependency mapping & blocker detector
 │   ├── embeddings.py           # SentenceTransformer vector embeddings
 │   ├── insights.py             # Evidence-backed AI recommendation engine
 │   ├── keywords.py             # KeyBERT keyword extraction
 │   ├── preprocessing.py        # Robust CSV data loading, cleaning & schema normalization
-│   ├── ranking.py              # Smart Priority Score (RICE) engine
+│   ├── ranking.py              # Smart Priority Score (RICE) engine with custom weights
 │   ├── reporting.py            # Executive Report Generator (Markdown, HTML, PDF)
-│   ├── roadmap.py              # Now / Next / Later AI Roadmap generator
+│   ├── roadmap.py              # Now / Next / Later AI Roadmap generator & interactive mover
 │   ├── sentiment.py            # Dual-mode sentiment analysis (Transformers + Fallback)
 │   ├── segments.py             # Customer segment breakdown & revenue weighting
 │   ├── strategy.py             # Cross-functional team domain auto-tagger
 │   ├── summarizer.py           # Cluster centroid extractive summarizer
+│   ├── trends.py               # Demand velocity & momentum trend forecasting engine
 │   ├── vector_search.py        # FAISS cosine indexing & semantic duplicate detection
 │   └── visualization.py        # Interactive Plotly & Matplotlib charts
 ├── tests/
-│   └── test_pipeline.py        # 13 automated unit and integration tests
+│   └── test_pipeline.py        # 16 automated unit and integration tests
 ├── app.py                      # Main Streamlit application
+├── LICENSE                     # MIT License
 ├── requirements.txt            # Python dependencies
 └── README.md                   # Project documentation
 ```

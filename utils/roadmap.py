@@ -37,22 +37,14 @@ def generate_ai_roadmap(df, ranking_df, cluster_keywords, cluster_summaries):
         assigned_team = pd.Series(all_tags).mode()[0] if all_tags else "General"
         
         # Priority Decision Logic (Now / Next / Later)
-        # 1. NOW:
-        #    - Top 30% RICE scores OR
-        #    - High negative sentiment (> 35%) with significant volume OR
-        #    - Low effort quick wins (Effort <= 3.5 and Score > median)
         if (score >= max_rice * 0.55) or (neg_ratio >= 35.0 and volume >= 15) or (effort <= 3.5 and score >= median_rice):
             stage = "NOW"
             stage_badge = "🔥 NOW (Current Sprint / Q1)"
             target_timeframe = "1 - 3 Months"
-        # 2. NEXT:
-        #    - Medium to high score OR moderate effort
         elif score >= median_rice * 0.7 or volume >= 10:
             stage = "NEXT"
             stage_badge = "⭐ NEXT (Upcoming Quarter / Q2)"
             target_timeframe = "3 - 6 Months"
-        # 3. LATER:
-        #    - Lower score, exploratory, or massive effort
         else:
             stage = "LATER"
             stage_badge = "🧊 LATER (Future Horizon / Backlog)"
@@ -81,8 +73,47 @@ def generate_ai_roadmap(df, ranking_df, cluster_keywords, cluster_summaries):
         })
         
     roadmap_df = pd.DataFrame(roadmap_items)
-    # Sort within each stage by RICE_Score
     stage_order = {"NOW": 0, "NEXT": 1, "LATER": 2}
     roadmap_df['stage_rank'] = roadmap_df['Stage'].map(stage_order)
     roadmap_df = roadmap_df.sort_values(by=['stage_rank', 'RICE_Score'], ascending=[True, False]).drop(columns=['stage_rank']).reset_index(drop=True)
     return roadmap_df
+
+def move_roadmap_item(roadmap_df, theme_or_id, new_stage):
+    """
+    Moves an item in the roadmap to a new execution horizon (NOW, NEXT, or LATER)
+    and updates timeframes and badges accordingly.
+    """
+    df_copy = roadmap_df.copy()
+    stage_badges = {
+        "NOW": ("🔥 NOW (Current Sprint / Q1)", "1 - 3 Months"),
+        "NEXT": ("⭐ NEXT (Upcoming Quarter / Q2)", "3 - 6 Months"),
+        "LATER": ("🧊 LATER (Future Horizon / Backlog)", "6 - 12 Months")
+    }
+    
+    badge, timeframe = stage_badges.get(new_stage.upper(), ("PLAN", "TBD"))
+    
+    mask = (df_copy['Theme'] == theme_or_id) | (df_copy['ID'] == theme_or_id)
+    if mask.any():
+        df_copy.loc[mask, 'Stage'] = new_stage.upper()
+        df_copy.loc[mask, 'Priority'] = badge
+        df_copy.loc[mask, 'Timeframe'] = timeframe
+        
+    stage_order = {"NOW": 0, "NEXT": 1, "LATER": 2}
+    df_copy['stage_rank'] = df_copy['Stage'].map(stage_order)
+    df_copy = df_copy.sort_values(by=['stage_rank', 'RICE_Score'], ascending=[True, False]).drop(columns=['stage_rank']).reset_index(drop=True)
+    return df_copy
+
+def export_roadmap_markdown(roadmap_df):
+    """Exports the roadmap to structured Markdown."""
+    md = "# 🗺️ Product Roadmap (Now / Next / Later)\n\n"
+    for stage, title in [("NOW", "🔥 NOW (Current Sprint & Q1)"), ("NEXT", "⭐ NEXT (Upcoming Quarter Q2)"), ("LATER", "🧊 LATER (Future Horizon)")]:
+        items = roadmap_df[roadmap_df['Stage'] == stage]
+        md += f"## {title}\n"
+        if items.empty:
+            md += "*No items scheduled in this horizon.*\n\n"
+        else:
+            for _, r in items.iterrows():
+                md += f"- **{r['Theme']}** (RICE: {r['Score']} | Effort: {r['Effort']} pts | Team: {r['Assigned Team']})\n"
+                md += f"  - *Summary:* {r['Summary']}\n"
+            md += "\n"
+    return md
