@@ -93,43 +93,45 @@ st.markdown("""
     }
 
     /* Sidebar Navigation Menu Items (Styled like native SaaS navigation) */
-    div[data-testid="stSidebar"] div[role="radiogroup"] {
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {
         display: flex;
         flex-direction: column;
         gap: 3px;
+        width: 100% !important;
     }
-    div[data-testid="stSidebar"] div[role="radiogroup"] label {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 0.84rem;
-        font-weight: 500;
-        color: #334155;
-        cursor: pointer;
-        margin: 0;
-        border: 1px solid transparent;
-        background: transparent;
-        transition: background-color 0.1s ease;
-    }
-    div[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
-        background-color: #f1f5f9;
-        color: #0f172a;
-    }
-    div[data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"],
-    div[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) {
-        background-color: #eef2ff !important;
-        color: #4f46e5 !important;
-        font-weight: 700 !important;
-        border-color: #e0e7ff !important;
-    }
-    div[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
+    /* Hide the radio circle / dot completely across all Streamlit versions */
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] label > div:first-child,
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child {
         display: none !important;
     }
-    div[data-testid="stSidebar"] div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {
-        font-size: 0.84rem !important;
-        font-weight: inherit !important;
-        color: inherit !important;
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] label {
+        display: block !important;
+        width: 100% !important;
+        padding: 9px 12px !important;
+        border-radius: 8px !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        color: #334155 !important;
+        cursor: pointer !important;
+        margin: 1px 0 !important;
+        border: 1px solid transparent !important;
+        background: transparent !important;
+        transition: background-color 0.15s ease !important;
+    }
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+    }
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
+        background-color: #eef2ff !important;
+        border-color: #e0e7ff !important;
+    }
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p {
+        color: #4f46e5 !important;
+        font-weight: 700 !important;
+    }
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] p {
+        font-size: 0.85rem !important;
         margin: 0 !important;
     }
 
@@ -435,11 +437,26 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ----------------- Automatic / Manual Ingestion Pipeline ----------------- #
-# Auto-load the 1,000 sample dataset on first launch so the dashboard is immediately live!
+# ----------------- Instant Cache Fast-Path & Ingestion Pipeline ----------------- #
+sample_cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_processed.pkl')
 sample_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_requests.csv')
 uploaded_file = None
 
+# 1. Instant 0.02s Precomputed Load (Zero Loading Progress Bar)
+if not st.session_state.processed_data and os.path.exists(sample_cache_path):
+    try:
+        import pickle
+        with open(sample_cache_path, 'rb') as f:
+            cache_bundle = pickle.load(f)
+        for k, v in cache_bundle.items():
+            st.session_state[k] = v
+        if 'embeddings' in cache_bundle:
+            st.session_state.index = build_faiss_index(cache_bundle['embeddings'])
+        st.session_state.processed_data = True
+    except Exception:
+        pass
+
+# 2. Fallback to raw sample CSV if cache not yet populated
 if not st.session_state.processed_data:
     if os.path.exists(sample_path):
         with open(sample_path, 'r', encoding='utf-8') as f:
