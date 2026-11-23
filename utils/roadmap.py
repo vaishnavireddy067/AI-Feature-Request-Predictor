@@ -10,6 +10,13 @@ def generate_ai_roadmap(df, ranking_df, cluster_keywords, cluster_summaries):
     max_rice = ranking_df['RICE Score'].max() if not ranking_df.empty else 1.0
     median_rice = ranking_df['RICE Score'].median() if not ranking_df.empty else 0.5
     
+    # Priority Decision Logic (Partition across NOW, NEXT, and LATER)
+    sorted_df = ranking_df.sort_values(by='RICE Score', ascending=False).reset_index(drop=True)
+    c_to_rank = {int(r['Cluster']): idx for idx, r in sorted_df.iterrows()}
+    n_total = len(sorted_df)
+    now_limit = max(1, n_total // 3)
+    next_limit = max(2, (2 * n_total) // 3)
+    
     for _, row in ranking_df.iterrows():
         c_id = int(row['Cluster'])
         c_df = df[df['Cluster'] == c_id]
@@ -36,12 +43,13 @@ def generate_ai_roadmap(df, ranking_df, cluster_keywords, cluster_summaries):
                     all_tags.append(tags)
         assigned_team = pd.Series(all_tags).mode()[0] if all_tags else "General"
         
-        # Priority Decision Logic (Now / Next / Later)
-        if (score >= max_rice * 0.55) or (neg_ratio >= 35.0 and volume >= 15) or (effort <= 3.5 and score >= median_rice):
+        # Balanced Horizon Partition
+        rank = c_to_rank.get(c_id, 0)
+        if rank < now_limit or (effort <= 3.5 and score >= median_rice):
             stage = "NOW"
             stage_badge = "🔥 NOW (Current Sprint / Q1)"
             target_timeframe = "1 - 3 Months"
-        elif score >= median_rice * 0.7 or volume >= 10:
+        elif rank < next_limit:
             stage = "NEXT"
             stage_badge = "⭐ NEXT (Upcoming Quarter / Q2)"
             target_timeframe = "3 - 6 Months"

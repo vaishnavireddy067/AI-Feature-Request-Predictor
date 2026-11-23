@@ -129,17 +129,97 @@ def plot_segment_donut(df):
 
 # ----------------- Exact Target Design Visualizations (media_1795426296780_d98b4c8b) ----------------- #
 
-def plot_target_demand_trend(df=None, trends_df=None):
+def plot_target_demand_trend(df=None, trends_df=None, timeframe="All Time"):
     """
-    Renders the exact Demand Trend curve from the user's design mock:
-    Smooth purple spline spanning across Sep 2026, Oct 2026, Nov 2026 with 842 requests highlight.
+    Renders customer request volume over time based on actual feedback data in df.
+    Supports timeframe filtering: 'Last 30 Days', 'Last 90 Days', 'Last 6 Months', 'All Time'.
+    Gracefully falls back if df is None or missing dates.
     """
+    if df is not None and 'Date' in df.columns and not df.empty:
+        df_copy = df.copy()
+        df_copy['Datetime'] = pd.to_datetime(df_copy['Date'], errors='coerce')
+        df_copy = df_copy.dropna(subset=['Datetime'])
+        
+        if not df_copy.empty:
+            max_date = df_copy['Datetime'].max()
+            if timeframe == "Last 30 Days":
+                df_copy = df_copy[df_copy['Datetime'] >= (max_date - pd.Timedelta(days=30))]
+                # Group by day
+                df_copy['Period_Sort'] = df_copy['Datetime'].dt.date
+                agg = df_copy.groupby('Period_Sort').size().reset_index(name='Count').sort_values('Period_Sort')
+                agg['Period'] = pd.to_datetime(agg['Period_Sort']).dt.strftime('%b %d')
+            elif timeframe == "Last 90 Days":
+                df_copy = df_copy[df_copy['Datetime'] >= (max_date - pd.Timedelta(days=90))]
+                # Group by week
+                df_copy['Period_Sort'] = df_copy['Datetime'].dt.to_period('W')
+                agg = df_copy.groupby('Period_Sort').size().reset_index(name='Count').sort_values('Period_Sort')
+                agg['Period'] = agg['Period_Sort'].dt.strftime('%b %d')
+            elif timeframe == "Last 6 Months":
+                df_copy = df_copy[df_copy['Datetime'] >= (max_date - pd.Timedelta(days=180))]
+                # Group by month
+                df_copy['Period_Sort'] = df_copy['Datetime'].dt.to_period('M')
+                agg = df_copy.groupby('Period_Sort').size().reset_index(name='Count').sort_values('Period_Sort')
+                agg['Period'] = agg['Period_Sort'].dt.strftime('%b %Y')
+            else:
+                # All Time - group by month
+                df_copy['Period_Sort'] = df_copy['Datetime'].dt.to_period('M')
+                agg = df_copy.groupby('Period_Sort').size().reset_index(name='Count').sort_values('Period_Sort')
+                agg['Period'] = agg['Period_Sort'].dt.strftime('%b %Y')
+                
+            x_vals = agg['Period'].tolist()
+            y_vals = agg['Count'].tolist()
+            
+            if len(x_vals) > 0:
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=x_vals,
+                    y=y_vals,
+                    mode='lines+markers',
+                    name='Requests',
+                    line=dict(color='#5B4DF5', width=3, shape='spline'),
+                    marker=dict(size=7, color='#5B4DF5', line=dict(color='#ffffff', width=2)),
+                    fill='tozeroy',
+                    fillcolor='rgba(91, 77, 245, 0.08)',
+                    hovertemplate="<b>%{x}</b><br>Requests: <b>%{y:,}</b><extra></extra>"
+                ))
+                
+                # Highlight maximum point
+                max_idx = int(np.argmax(y_vals))
+                fig.add_trace(go.Scatter(
+                    x=[x_vals[max_idx]],
+                    y=[y_vals[max_idx]],
+                    mode='markers',
+                    marker=dict(size=14, color='rgba(91, 77, 245, 0.25)', line=dict(color='#5B4DF5', width=2)),
+                    hoverinfo='skip',
+                    showlegend=False
+                ))
+                
+                fig.update_layout(
+                    template="plotly_white",
+                    height=240,
+                    margin=dict(l=35, r=15, t=10, b=30),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    showlegend=False,
+                    xaxis=dict(
+                        showgrid=False,
+                        zeroline=False,
+                        tickfont=dict(size=10, color="#64748B", family="Plus Jakarta Sans")
+                    ),
+                    yaxis=dict(
+                        showgrid=True,
+                        gridcolor="#EEF2F6",
+                        zeroline=False,
+                        tickfont=dict(size=10, color="#64748B", family="Plus Jakarta Sans")
+                    )
+                )
+                return fig
+
+    # Fallback to smooth baseline mock curve if df is empty
     x_vals = [0, 1, 2, 3, 4, 5, 6, 7]
     y_vals = [460, 520, 500, 620, 580, 680, 842, 890]
     
     fig = go.Figure()
-    
-    # Area fill under curve
     fig.add_trace(go.Scatter(
         x=x_vals,
         y=y_vals,
@@ -156,7 +236,6 @@ def plot_target_demand_trend(df=None, trends_df=None):
         hoverinfo='y'
     ))
 
-    # Halo ring around the 842 highlight point at x=6
     fig.add_trace(go.Scatter(
         x=[6],
         y=[842],
@@ -201,19 +280,29 @@ def plot_target_demand_trend(df=None, trends_df=None):
 
 def plot_target_sentiment_donut(df=None):
     """
-    Renders the exact Sentiment Overview Donut from the user's design mock:
-    Donut with 72% Positive (Emerald Green), 16% Neutral (Amber), 12% Negative (Coral/Red).
+    Renders Sentiment Overview Donut from actual analyzed feedback in df.
+    Calculates positive, neutral, and negative sentiment distribution.
     """
     labels = ['Positive', 'Neutral', 'Negative']
-    values = [72, 16, 12]
-    # Green, Amber, Red to match target mock precisely
     colors = ['#10B981', '#F59E0B', '#EF4444']
+    
+    if df is not None and 'Sentiment' in df.columns and not df.empty:
+        vc = df['Sentiment'].value_counts()
+        total = len(df)
+        pos = round((vc.get('POSITIVE', 0) / total) * 100, 1)
+        neu = round((vc.get('NEUTRAL', 0) / total) * 100, 1)
+        neg = round((vc.get('NEGATIVE', 0) / total) * 100, 1)
+        values = [pos, neu, neg]
+        center_text = f"<b>{pos}%</b><br><span style='font-size:11px; color:#64748B; font-weight:600;'>Positive</span>"
+    else:
+        values = [72, 16, 12]
+        center_text = "<b>72%</b><br><span style='font-size:11px; color:#64748B; font-weight:600;'>Positive</span>"
     
     fig = go.Figure(data=[go.Pie(
         labels=labels,
         values=values,
         hole=0.72,
-        sort=False,  # prevent reordering
+        sort=False,
         direction='clockwise',
         rotation=110,
         marker=dict(
@@ -221,15 +310,15 @@ def plot_target_sentiment_donut(df=None):
             line=dict(color='#ffffff', width=3)
         ),
         textinfo='none',
-        hoverinfo='label+percent',
+        hovertemplate="<b>%{label}</b><br>Share: <b>%{value}%</b><extra></extra>",
         showlegend=False
     )])
     
     fig.add_annotation(
-        text="<b>72%</b><br><span style='font-size:12px; color:#64748B; font-weight:600;'>Positive</span>",
+        text=center_text,
         x=0.5, y=0.5,
         showarrow=False,
-        font=dict(size=22, family="Plus Jakarta Sans", color="#0F172A"),
+        font=dict(size=20, family="Plus Jakarta Sans", color="#0F172A"),
         align='center'
     )
     
@@ -239,6 +328,35 @@ def plot_target_sentiment_donut(df=None):
         margin=dict(l=5, r=5, t=5, b=5),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
+    )
+    return fig
+
+def plot_real_category_distribution(df):
+    """
+    Plots horizontal bar chart of feedback distribution across categories.
+    """
+    if df is None or 'Category' not in df.columns or df.empty:
+        return go.Figure()
+        
+    top_cats = df['Category'].value_counts().head(8).reset_index()
+    top_cats.columns = ['Category', 'Count']
+    top_cats = top_cats.sort_values('Count', ascending=True)
+    
+    fig = go.Figure(go.Bar(
+        x=top_cats['Count'],
+        y=top_cats['Category'],
+        orientation='h',
+        marker=dict(color='#6366F1', opacity=0.9, cornerradius=5),
+        hovertemplate="<b>%{y}</b><br>Requests: <b>%{x:,}</b><extra></extra>"
+    ))
+    fig.update_layout(
+        template="plotly_white",
+        height=190,
+        margin=dict(l=10, r=20, t=10, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(showgrid=True, gridcolor="#EEF2F6", tickfont=dict(size=10, color="#64748B")),
+        yaxis=dict(showgrid=False, tickfont=dict(size=10, color="#0F172A"))
     )
     return fig
 
