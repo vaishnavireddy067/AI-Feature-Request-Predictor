@@ -24,6 +24,7 @@ from utils.trends import analyze_demand_trends
 from utils.segments import analyze_customer_segments
 from utils.reporting import generate_markdown_report, generate_html_report, generate_pdf_report
 from utils.ai_agent import get_agent, query_agent, generate_prd, generate_release_notes
+
 import importlib
 import utils.visualization as vis
 try:
@@ -43,7 +44,7 @@ plot_bytevox_predictive_forecast = getattr(vis, 'plot_bytevox_predictive_forecas
 
 # ----------------- Streamlit Page Configuration ----------------- #
 st.set_page_config(
-    page_title="Prioritize.ai | Product Intelligence SaaS",
+    page_title="Prioritize.ai | Enterprise Product Intelligence SaaS",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -60,7 +61,7 @@ st.markdown("""
         background-color: #f8fafc;
     }
 
-    /* 1. LOCK SIDEBAR: FIXED WIDTH, NO RESIZING, NO JUMPING */
+    /* 1. LOCK SIDEBAR: FIXED WIDTH, CLEAN WHITE BACKGROUND */
     section[data-testid="stSidebar"] {
         min-width: 270px !important;
         max-width: 270px !important;
@@ -85,24 +86,22 @@ st.markdown("""
 
     /* 3. MAIN CONTAINER FIXED PADDING */
     .main .block-container {
-        padding-top: 1.2rem !important;
+        padding-top: 1.0rem !important;
         padding-bottom: 2.5rem !important;
         padding-left: 1.8rem !important;
         padding-right: 1.8rem !important;
         max-width: 100% !important;
     }
 
-    /* Sidebar Navigation Menu Items (Styled like native SaaS navigation) */
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        width: 100% !important;
-    }
-    /* Hide the radio circle / dot completely across all Streamlit versions */
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] label > div:first-child,
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child {
+    /* 4. HIDE STREAMLIT RADIO CIRCLES COMPLETELY (Native SaaS Menu Styling) */
+    div[data-testid="stSidebar"] [data-baseweb="radio"] div:first-child,
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] svg,
+    div[data-testid="stSidebar"] div[data-testid="stRadio"] input[type="radio"] {
         display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
     div[data-testid="stSidebar"] div[data-testid="stRadio"] label {
         display: block !important;
@@ -135,6 +134,16 @@ st.markdown("""
         margin: 0 !important;
     }
 
+    /* 5. NATIVE CONTAINER CARDS STYLING (MATCHING BYTEVOX REFERENCE) */
+    div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff !important;
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        padding: 14px 16px !important;
+        margin-bottom: 12px !important;
+    }
+
     /* Top Action Bar Breadcrumb Pill */
     .bv-breadcrumb-pill {
         display: inline-flex;
@@ -153,7 +162,7 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* KPI Cards (Row of 5 stat metrics) */
+    /* KPI Cards Styling */
     .bv-kpi-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -178,8 +187,7 @@ st.markdown("""
         text-transform: capitalize;
     }
     .bv-kpi-icon {
-        font-size: 0.9rem;
-        color: #94a3b8;
+        font-size: 0.95rem;
     }
     .bv-kpi-val-row {
         display: flex;
@@ -205,54 +213,12 @@ st.markdown("""
         align-items: center;
         gap: 2px;
     }
+    .bv-kpi-delta-amber {
+        color: #d97706;
+    }
     .bv-kpi-delta-red {
         color: #ef4444;
     }
-
-    /* 6 Analytical Cards Container */
-    .bv-analytics-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 16px 18px;
-        min-height: 320px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-        margin-bottom: 16px;
-    }
-    .bv-card-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 6px;
-    }
-    .bv-card-title {
-        font-size: 0.92rem;
-        font-weight: 700;
-        color: #0f172a;
-        line-height: 1.2;
-    }
-    .bv-card-subtitle {
-        font-size: 0.72rem;
-        color: #64748b;
-        margin-top: 2px;
-    }
-    .bv-card-legend {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.72rem;
-        color: #64748b;
-    }
-    .legend-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 3px;
-    }
-    .dot-green { background-color: #10b981; }
-    .dot-slate { background-color: #94a3b8; }
-    .dot-red { background-color: #ef4444; }
 
     /* Top Themes 2x4 Tile Grid */
     .themes-grid {
@@ -260,22 +226,22 @@ st.markdown("""
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: repeat(2, 1fr);
         gap: 8px;
-        margin-top: 8px;
+        margin-top: 6px;
     }
     .theme-box {
         background: #eff6ff;
         border: 1px solid #dbeafe;
         border-radius: 8px;
-        padding: 14px 6px;
+        padding: 10px 6px;
         text-align: center;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 72px;
+        min-height: 64px;
     }
     .theme-box-title {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 700;
         color: #1e3a8a;
         white-space: nowrap;
@@ -287,7 +253,7 @@ st.markdown("""
         font-size: 0.72rem;
         font-weight: 600;
         color: #3b82f6;
-        margin-top: 4px;
+        margin-top: 3px;
     }
 
     /* Badges & Quote Styling */
@@ -311,7 +277,7 @@ st.markdown("""
         padding: 8px 12px;
         margin: 6px 0;
         font-style: italic;
-        font-size: 0.84rem;
+        font-size: 0.82rem;
         color: #334155;
     }
     
@@ -415,7 +381,6 @@ with st.sidebar:
         "⚙️ Settings & Ingestion"
     ]
     
-    # Sync with session state
     curr_nav_idx = nav_options.index(st.session_state.active_nav) if st.session_state.active_nav in nav_options else 0
     selected_nav = st.radio("Navigation", nav_options, index=curr_nav_idx, label_visibility="collapsed")
     if selected_nav != st.session_state.active_nav:
@@ -424,7 +389,7 @@ with st.sidebar:
 
     st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
-    # Bottom User / Admin Pill (like in reference image)
+    # Bottom User / Admin Pill
     st.markdown("""
     <div style="padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
         <div style="width: 32px; height: 32px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">
@@ -442,7 +407,7 @@ sample_cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'da
 sample_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_requests.csv')
 uploaded_file = None
 
-# 1. Instant 0.02s Precomputed Load (Zero Loading Progress Bar)
+# 1. Instant 0.02s Precomputed Load (Zero Progress Bar Delay)
 if not st.session_state.processed_data and os.path.exists(sample_cache_path):
     try:
         import pickle
@@ -602,14 +567,14 @@ if st.session_state.processed_data and st.session_state.df is not None:
     if st.session_state.active_nav == "🏠 Overview":
         
         # Horizontal Filter Bar (ByteVox Filter Row)
-        st.markdown("<div style='margin-top: 6px;'></div>", unsafe_allow_html=True)
-        with st.container():
-            col_f_icon, col_f_time, col_f_seg, col_f_cat, col_f_btn = st.columns([1.2, 2.3, 2.5, 2.5, 2.5])
+        st.markdown("<div style='margin-top: 4px;'></div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            col_f_icon, col_f_time, col_f_seg, col_f_cat, col_f_b1, col_f_b2 = st.columns([1.2, 2.4, 2.4, 2.4, 1.3, 1.3])
             
             with col_f_icon:
                 st.markdown("""
-                <div style="padding-top: 8px; font-size: 0.82rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 5px;">
-                    <span>⚡ Filters:</span>
+                <div style="padding-top: 6px; font-size: 0.82rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 4px;">
+                    <span>⚡ Filters</span>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -621,35 +586,101 @@ if st.session_state.processed_data and st.session_state.df is not None:
             with col_f_cat:
                 cat_list = ["All Products"] + sorted(df['Category'].unique().tolist())
                 cat_filter = st.selectbox("Category", cat_list, label_visibility="collapsed", key="ov_cat")
-            with col_f_btn:
-                col_b1, col_b2 = st.columns(2)
-                with col_b1:
-                    st.button("Apply", type="primary", use_container_width=True)
-                with col_b2:
-                    if st.button("Reset", use_container_width=True):
-                        st.session_state.ov_time = "Last 30 days"
-                        st.session_state.ov_seg = "All Segments"
-                        st.session_state.ov_cat = "All Products"
-                        st.rerun()
+            with col_f_b1:
+                st.button("Apply", type="primary", use_container_width=True)
+            with col_f_b2:
+                if st.button("Reset", use_container_width=True):
+                    st.session_state.ov_time = "Last 30 days"
+                    st.session_state.ov_seg = "All Segments"
+                    st.session_state.ov_cat = "All Products"
+                    st.rerun()
 
-        # Apply Horizontal Filters to Overview Display
+        # Apply Horizontal Filters
         filtered_ov = df.copy()
         if seg_filter != "All Segments":
             filtered_ov = filtered_ov[filtered_ov['Customer_Segment'] == seg_filter]
         if cat_filter != "All Products":
             filtered_ov = filtered_ov[filtered_ov['Category'] == cat_filter]
 
-        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
 
-        # ----------------- 5 KPI METRICS STRIP (ByteVox KPI Row) ----------------- #
+        # ----------------- 5 KPI METRICS STRIP (Exact User Requirements) ----------------- #
         col_k1, col_k2, col_k3, col_k4, col_k5 = st.columns(5)
         
-        # 1. Feature Health Score
+        # 1. Total Requests
+        total_reqs = len(filtered_ov)
         with col_k1:
+            st.markdown(f"""
+            <div class="bv-kpi-card">
+                <div class="bv-kpi-header">
+                    <span class="bv-kpi-label">Total Requests</span>
+                    <span class="bv-kpi-icon">📥</span>
+                </div>
+                <div class="bv-kpi-val-row">
+                    <span class="bv-kpi-number">{total_reqs:,}</span>
+                    <span class="bv-kpi-delta">📈 +14.2%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # 2. Feature Clusters
+        total_clusters = len(ranking_df) if ranking_df is not None else 12
+        with col_k2:
+            st.markdown(f"""
+            <div class="bv-kpi-card">
+                <div class="bv-kpi-header">
+                    <span class="bv-kpi-label">Feature Clusters</span>
+                    <span class="bv-kpi-icon">🗂️</span>
+                </div>
+                <div class="bv-kpi-val-row">
+                    <span class="bv-kpi-number">{total_clusters}</span>
+                    <span class="bv-kpi-denom">themes</span>
+                    <span class="bv-kpi-delta">🎯 -28%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # 3. High Priority (P0 RICE Score)
+        top_feature_name = roadmap_df.iloc[0]['Theme'] if not roadmap_df.empty else "SSO & Auth"
+        top_feature_score = roadmap_df.iloc[0]['Score'] if not roadmap_df.empty else 84.5
+        with col_k3:
+            st.markdown(f"""
+            <div class="bv-kpi-card">
+                <div class="bv-kpi-header">
+                    <span class="bv-kpi-label">High Priority (P0)</span>
+                    <span class="bv-kpi-icon">🔥</span>
+                </div>
+                <div class="bv-kpi-val-row">
+                    <span class="bv-kpi-number">{top_feature_score}</span>
+                    <span class="bv-kpi-denom">RICE</span>
+                    <span class="bv-kpi-delta bv-kpi-delta-amber">P0 Sprint</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # 4. Emerging Trends (Velocity Acceleration)
+        active_alerts_count = len(alerts) if alerts else 3
+        with col_k4:
+            st.markdown(f"""
+            <div class="bv-kpi-card">
+                <div class="bv-kpi-header">
+                    <span class="bv-kpi-label">Emerging Trends</span>
+                    <span class="bv-kpi-icon">🚀</span>
+                </div>
+                <div class="bv-kpi-val-row">
+                    <span class="bv-kpi-number">{active_alerts_count}</span>
+                    <span class="bv-kpi-denom">surges</span>
+                    <span class="bv-kpi-delta">⚡ +68%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # 5. Feature Health Score
+        with col_k5:
             st.markdown("""
             <div class="bv-kpi-card">
                 <div class="bv-kpi-header">
-                    <span class="bv-kpi-label">Feature Health Score</span>
+                    <span class="bv-kpi-label">CX Health Score</span>
                     <span class="bv-kpi-icon">🛡️</span>
                 </div>
                 <div class="bv-kpi-val-row">
@@ -659,227 +690,165 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
-        # 2. Prioritization Index (RICE)
-        with col_k2:
-            st.markdown("""
-            <div class="bv-kpi-card">
-                <div class="bv-kpi-header">
-                    <span class="bv-kpi-label">Prioritization Index</span>
-                    <span class="bv-kpi-icon">↗</span>
-                </div>
-                <div class="bv-kpi-val-row">
-                    <span class="bv-kpi-number">7.2</span>
-                    <span class="bv-kpi-denom">/10</span>
-                    <span class="bv-kpi-delta">↗ +4</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        # 3. Customer Confidence Rate
-        with col_k3:
-            st.markdown("""
-            <div class="bv-kpi-card">
-                <div class="bv-kpi-header">
-                    <span class="bv-kpi-label">Confidence Rate</span>
-                    <span class="bv-kpi-icon">✨</span>
-                </div>
-                <div class="bv-kpi-val-row">
-                    <span class="bv-kpi-number">4.4</span>
-                    <span class="bv-kpi-denom">/5</span>
-                    <span class="bv-kpi-delta">✨ +0.2</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        # 4. Response Velocity
-        with col_k4:
-            st.markdown("""
-            <div class="bv-kpi-card">
-                <div class="bv-kpi-header">
-                    <span class="bv-kpi-label">Response Velocity</span>
-                    <span class="bv-kpi-icon">⏱️</span>
-                </div>
-                <div class="bv-kpi-val-row">
-                    <span class="bv-kpi-number">9.3</span>
-                    <span class="bv-kpi-denom">hrs</span>
-                    <span class="bv-kpi-delta bv-kpi-delta-red">⏱️ -1.1</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        # 5. Open Blockers / Escalations
-        with col_k5:
-            blocked_count = len(dependency_df[dependency_df['Is_Blocked']]) if dependency_df is not None else 0
-            display_blockers = max(37, blocked_count)
-            st.markdown(f"""
-            <div class="bv-kpi-card">
-                <div class="bv-kpi-header">
-                    <span class="bv-kpi-label">Open Escalations</span>
-                    <span class="bv-kpi-icon">🔔</span>
-                </div>
-                <div class="bv-kpi-val-row">
-                    <span class="bv-kpi-number">{display_blockers}</span>
-                    <span class="bv-kpi-delta bv-kpi-delta-red">🚨 -6</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
 
-        st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
 
-        # ----------------- ROW 1: 3 ANALYTICAL CARDS ----------------- #
+        # ----------------- ROW 1: 3 ANALYTICAL CARDS (Native Bordered Containers) ----------------- #
         col_r1_1, col_r1_2, col_r1_3 = st.columns(3)
         
-        # Card 1: Sentiment Overview (Donut Chart)
+        # Card 1: Sentiment Overview (Positive, Neutral, Negative)
         with col_r1_1:
-            st.markdown("""
-            <div class="bv-analytics-card">
-                <div class="bv-card-top">
+            with st.container(border=True):
+                st.markdown("""
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
                     <div>
-                        <div class="bv-card-title">Sentiment Overview</div>
-                        <div class="bv-card-subtitle">Positive / Neutral / Negative</div>
+                        <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">Sentiment Overview</div>
+                        <div style="font-size: 0.72rem; color: #64748b;">Positive / Neutral / Negative breakdown</div>
                     </div>
-                    <div class="bv-card-legend">
-                        <span><span class="legend-dot dot-green"></span>Positive</span>
-                        <span><span class="legend-dot dot-slate"></span>Neutral</span>
-                        <span><span class="legend-dot dot-red"></span>Negative</span>
+                    <div style="display: flex; gap: 6px; font-size: 0.70rem; color: #64748b;">
+                        <span>🟢 Pos</span> <span>⚪ Neu</span> <span>🔴 Neg</span>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
-            fig_donut = plot_bytevox_sentiment_donut(filtered_ov)
-            st.plotly_chart(fig_donut, use_container_width=True, config={'displayModeBar': False})
-            st.markdown("</div>", unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                fig_donut = plot_bytevox_sentiment_donut(filtered_ov)
+                st.plotly_chart(fig_donut, use_container_width=True, config={'displayModeBar': False})
             
-        # Card 2: Demand & Velocity Trend (Dual Curve Line Chart)
+        # Card 2: Demand Trend Chart (Requests Over Time)
         with col_r1_2:
-            st.markdown("""
-            <div class="bv-analytics-card">
-                <div class="bv-card-top">
+            with st.container(border=True):
+                st.markdown("""
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
                     <div>
-                        <div class="bv-card-title">Demand & Velocity Trend</div>
-                        <div class="bv-card-subtitle">Current vs previous period</div>
+                        <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">Demand Trend Chart</div>
+                        <div style="font-size: 0.72rem; color: #64748b;">Feedback requests volume & velocity over time</div>
                     </div>
-                    <div class="bv-card-legend">
-                        <span><span class="legend-dot dot-blue"></span>Demand</span>
-                        <span><span class="legend-dot dot-teal"></span>Velocity</span>
+                    <div style="display: flex; gap: 8px; font-size: 0.70rem; color: #64748b;">
+                        <span><span style="color:#3b82f6;">●</span> Demand</span>
+                        <span><span style="color:#06b6d4;">●</span> Velocity</span>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
-            fig_trend = plot_bytevox_demand_velocity(filtered_ov, trends_df)
-            st.plotly_chart(fig_trend, use_container_width=True, config={'displayModeBar': False})
-            st.markdown("</div>", unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                fig_trend = plot_bytevox_demand_velocity(filtered_ov, trends_df)
+                st.plotly_chart(fig_trend, use_container_width=True, config={'displayModeBar': False})
             
-        # Card 3: Backlog Volume by Category (Purple Bar Chart)
+        # Card 3: Feature Clusters / Category Volume
         with col_r1_3:
-            st.markdown("""
-            <div class="bv-analytics-card">
-                <div class="bv-card-top">
+            with st.container(border=True):
+                st.markdown("""
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
                     <div>
-                        <div class="bv-card-title">Backlog Performance</div>
-                        <div class="bv-card-subtitle">Feature volume by primary category</div>
+                        <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">Feature Clusters Volume</div>
+                        <div style="font-size: 0.72rem; color: #64748b;">Customer demand by core product category</div>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
-            fig_cat = plot_bytevox_category_volume(filtered_ov)
-            st.plotly_chart(fig_cat, use_container_width=True, config={'displayModeBar': False})
-            st.markdown("</div>", unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                fig_cat = plot_bytevox_category_volume(filtered_ov)
+                st.plotly_chart(fig_cat, use_container_width=True, config={'displayModeBar': False})
 
-        # ----------------- ROW 2: 3 ANALYTICAL CARDS ----------------- #
+        # ----------------- ROW 2: 3 ANALYTICAL CARDS (Native Bordered Containers) ----------------- #
         col_r2_1, col_r2_2, col_r2_3 = st.columns(3)
         
-        # Card 4: Segment Sentiment (100% Stacked Bar Chart)
+        # Card 4: Segment Sentiment Breakdown (Regional/Segment Stacked)
         with col_r2_1:
-            st.markdown("""
-            <div class="bv-analytics-card">
-                <div class="bv-card-top">
+            with st.container(border=True):
+                st.markdown("""
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
                     <div>
-                        <div class="bv-card-title">Segment Sentiment</div>
-                        <div class="bv-card-subtitle">Hotspots of negative feedback (stacked)</div>
+                        <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">Segment Sentiment</div>
+                        <div style="font-size: 0.72rem; color: #64748b;">Hotspots of customer friction (stacked)</div>
                     </div>
-                    <div class="bv-card-legend">
-                        <span><span class="legend-dot dot-green"></span>Positive</span>
-                        <span><span class="legend-dot dot-slate"></span>Neutral</span>
-                        <span><span class="legend-dot dot-red"></span>Negative</span>
+                    <div style="display: flex; gap: 6px; font-size: 0.70rem; color: #64748b;">
+                        <span>🟢 Pos</span> <span>⚪ Neu</span> <span>🔴 Neg</span>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
-            fig_seg = plot_bytevox_segment_sentiment(filtered_ov)
-            st.plotly_chart(fig_seg, use_container_width=True, config={'displayModeBar': False})
-            st.markdown("</div>", unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                fig_seg = plot_bytevox_segment_sentiment(filtered_ov)
+                st.plotly_chart(fig_seg, use_container_width=True, config={'displayModeBar': False})
             
-        # Card 5: Top Themes (2x4 Grid of Soft Periwinkle Tiles)
+        # Card 5: Top Feature Requests (Ranked with RICE Scores)
         with col_r2_2:
-            st.markdown("""
-            <div class="bv-analytics-card">
-                <div class="bv-card-top">
+            with st.container(border=True):
+                st.markdown("""
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
                     <div>
-                        <div class="bv-card-title">Top Themes</div>
-                        <div class="bv-card-subtitle">Auto-extracted keywords from transcripts</div>
+                        <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">Top Feature Requests</div>
+                        <div style="font-size: 0.72rem; color: #64748b;">Ranked with Reach, Impact, Confidence & Effort</div>
                     </div>
                     <div>
-                        <span style="font-size: 0.72rem; font-weight: 700; color: #4f46e5; cursor: pointer;">View root-cause →</span>
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #4f46e5; cursor: pointer;">View RICE →</span>
                     </div>
                 </div>
-                <div class="themes-grid">
+                """, unsafe_allow_html=True)
+                
+                # Dynamic top 8 features from roadmap/ranking
+                top_items = roadmap_df.head(8)
+                tiles_html = '<div class="themes-grid">'
+                for _, r in top_items.iterrows():
+                    tiles_html += f"""
                     <div class="theme-box">
-                        <div class="theme-box-title">Billing</div>
-                        <div class="theme-box-count">28 reqs</div>
+                        <div class="theme-box-title" title="{r['Theme']}">{r['Theme']}</div>
+                        <div class="theme-box-count">RICE {r['Score']} • {r['Volume']} reqs</div>
                     </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">Delivery Delay</div>
-                        <div class="theme-box-count">24 reqs</div>
-                    </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">Invoice Error</div>
-                        <div class="theme-box-count">20 reqs</div>
-                    </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">App Crash</div>
-                        <div class="theme-box-count">16 reqs</div>
-                    </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">Refund</div>
-                        <div class="theme-box-count">15 reqs</div>
-                    </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">Agent Wait</div>
-                        <div class="theme-box-count">14 reqs</div>
-                    </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">Price Mismatch</div>
-                        <div class="theme-box-count">12 reqs</div>
-                    </div>
-                    <div class="theme-box">
-                        <div class="theme-box-title">Service Quality</div>
-                        <div class="theme-box-count">10 reqs</div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+                    """
+                tiles_html += '</div>'
+                st.markdown(tiles_html, unsafe_allow_html=True)
             
-        # Card 6: Predictive Forecast (Area Forecast Chart)
+        # Card 6: Emerging Trends & Predictive Forecast
         with col_r2_3:
-            st.markdown("""
-            <div class="bv-analytics-card">
-                <div class="bv-card-top">
+            with st.container(border=True):
+                st.markdown("""
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
                     <div>
-                        <div class="bv-card-title">Predictive Forecast</div>
-                        <div class="bv-card-subtitle">Next-week sentiment prediction</div>
+                        <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">Predictive Forecast</div>
+                        <div style="font-size: 0.72rem; color: #64748b;">Next-sprint demand acceleration forecast</div>
                     </div>
-                    <div class="bv-card-legend">
-                        <span><span class="legend-dot dot-green"></span>Positive</span>
-                        <span><span class="legend-dot dot-red"></span>Negative</span>
+                    <div style="display: flex; gap: 6px; font-size: 0.70rem; color: #64748b;">
+                        <span><span style="color:#10b981;">●</span> Expected</span>
+                        <span><span style="color:#ef4444;">●</span> Risk</span>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
-            fig_fc = plot_bytevox_predictive_forecast(trends_df, monthly_volume)
-            st.plotly_chart(fig_fc, use_container_width=True, config={'displayModeBar': False})
-            st.markdown("""
-            <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">
-                Predicting slight uplift in positive sentiment as refunds clear.
-            </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                fig_fc = plot_bytevox_predictive_forecast(trends_df, monthly_volume)
+                st.plotly_chart(fig_fc, use_container_width=True, config={'displayModeBar': False})
+                st.markdown("""
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">
+                    Predicting strong demand surge in Enterprise API & Security integrations.
+                </div>
+                """, unsafe_allow_html=True)
+
+        # ----------------- SECTION 3: AI INSIGHTS & RECOMMENDED ACTIONS ----------------- #
+        st.markdown("<div style='margin-top: 6px;'></div>", unsafe_allow_html=True)
+        st.markdown("##### 💡 AI Strategic Insights & Evidence-Backed Actions")
+        
+        col_ins1, col_ins2, col_ins3 = st.columns(3)
+        top_insights = insights[:3] if insights else []
+        
+        for i, col in enumerate([col_ins1, col_ins2, col_ins3]):
+            if i < len(top_insights):
+                ins = top_insights[i]
+                with col:
+                    with st.container(border=True):
+                        st.markdown(f"""
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="font-size: 0.88rem; color: #0f172a;">{ins['Theme']}</strong>
+                            <span class="badge-pill pill-score">RICE {ins['RICE_Score']}</span>
+                        </div>
+                        <div style="font-size: 0.76rem; color: #475569; margin-bottom: 6px; line-height: 1.35;">
+                            <strong>AI Rationale:</strong> {ins['AI_Rationale'][:140]}...
+                        </div>
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 6px 10px; font-size: 0.74rem; color: #166534; margin-bottom: 6px;">
+                            <strong>🎯 Action:</strong> {ins['Actionable_Recommendation']}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        if ins.get('Customer_Quotes') and len(ins['Customer_Quotes']) > 0:
+                            q = ins['Customer_Quotes'][0]
+                            st.markdown(f"""
+                            <div class="saas-quote">
+                                "{q['text'][:90]}..."
+                                <br><small style="color: #64748b;">— <strong>{q['segment']}</strong> Customer ({q['upvotes']} upvotes)</small>
+                            </div>
+                            """, unsafe_allow_html=True)
 
     # =========================================================================
     # VIEW 2: 🎯 RICE DECISION ENGINE & SENSITIVITY SLIDERS
