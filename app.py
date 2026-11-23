@@ -186,55 +186,75 @@ st.markdown("""
         background-color: #F8F9FE !important;
     }
 
-    /* 4. SIDEBAR NAVIGATION MENU (HIDE RADIO CIRCLES 100%, LIGHT TEXT) */
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] label > *:not([data-testid="stMarkdownContainer"]) {
+    /* 4. SIDEBAR NAVIGATION MENU */
+    /* Hide the default radio circle, input, and svgs */
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] input {
+        display: none !important;
+        position: absolute !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label div:has(input),
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label > div:first-child:not(:only-child),
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label [class*="RadioMark"],
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label svg {
         display: none !important;
         width: 0 !important;
         height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] input,
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] svg {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-        opacity: 0 !important;
-        position: absolute !important;
-        pointer-events: none !important;
-    }
+
+    /* Style the whole label as a clean clickable nav item */
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label {
         display: flex !important;
         align-items: center !important;
         width: 100% !important;
-        padding: 9px 14px !important;
+        padding: 10px 14px !important;
         border-radius: 10px !important;
         cursor: pointer !important;
-        margin: 2px 0 !important;
+        margin: 3px 0 !important;
         border: 1px solid transparent !important;
         background: transparent !important;
         transition: background-color 0.15s ease !important;
     }
+
+    /* Target the text wrapper and ensure it is ALWAYS visible */
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label > div:last-child,
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label p,
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] p,
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] span {
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label span,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label div:not(:has(input)) {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         color: #CBD5E1 !important;
         font-size: 0.88rem !important;
         font-weight: 500 !important;
         margin: 0 !important;
         padding: 0 !important;
+        line-height: 1.35 !important;
     }
+
+    /* Hover effect */
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
         background-color: rgba(255, 255, 255, 0.08) !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover p {
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover p,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover span,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover div {
         color: #FFFFFF !important;
     }
+
+    /* Active Selected Item - Brilliant Indigo Pill with Crisp White Bold Text */
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
         background: #5B4DF5 !important;
         box-shadow: 0 4px 14px rgba(91, 77, 245, 0.45) !important;
     }
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p {
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) span,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) div {
         color: #FFFFFF !important;
         font-weight: 700 !important;
     }
@@ -470,18 +490,16 @@ with st.sidebar:
         st.session_state.active_nav = selected_nav
         st.rerun()
 
-    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-
-    # Sidebar Data Management Controls
-    with st.container():
-        if st.button("⚡ Load Sample Dataset", key="sb_btn_sample", use_container_width=True):
+    # Optional Collapsible Quick Dataset Actions
+    with st.expander("⚡ Quick Data Controls", expanded=False):
+        if st.button("⚡ Reload Sample (1,248 Reqs)", key="sb_btn_sample", use_container_width=True):
             load_sample_dataset()
             st.rerun()
 
-        sb_csv = st.file_uploader("Upload Feedback CSV", type=["csv"], key="sb_csv_upload", label_visibility="collapsed")
+        sb_csv = st.file_uploader("Upload CSV", type=["csv"], key="sb_csv_upload", label_visibility="collapsed")
         if sb_csv is not None:
-            if st.button("🚀 Ingest & Process CSV", type="primary", key="sb_btn_ingest", use_container_width=True):
-                with st.spinner("Processing feedback signals..."):
+            if st.button("🚀 Process CSV", type="primary", key="sb_btn_ingest", use_container_width=True):
+                with st.spinner("Processing feedback..."):
                     res = run_full_pipeline(sb_csv)
                     for k, v in res.items():
                         st.session_state[k] = v
@@ -492,18 +510,22 @@ with st.sidebar:
                 st.session_state[k] = state_defaults[k]
             st.rerun()
 
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-    # Bottom AI Copilot Card in Sidebar
-    with st.container(border=True):
-        st.markdown("<div style='text-align: center; font-size: 1.5rem;'>🧠</div>", unsafe_allow_html=True)
-        st.markdown("<div style='text-align: center; font-weight: 700; color: #FFFFFF; font-size: 0.8rem; line-height: 1.2;'>Smarter Decisions.<br>Better Products.</div>", unsafe_allow_html=True)
-        st.markdown("<div style='height: 6px;'></div>", unsafe_allow_html=True)
-        if st.button("Explore AI Copilot →", key="sb_copilot_btn", use_container_width=True):
-            st.session_state.active_nav = "🔍 Feedback Explorer"
-            st.rerun()
+    # Bottom AI Copilot Card in Sidebar (Matching target design)
+    st.html(textwrap.dedent("""
+    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px 12px; text-align: center; margin-bottom: 10px;">
+        <div style="font-size: 1.6rem; margin-bottom: 4px;">🧠</div>
+        <div style="font-size: 0.78rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">
+            Smarter Decisions.<br>Better Products.
+        </div>
+    </div>
+    """))
+    if st.button("Explore AI Copilot →", key="sb_copilot_btn", use_container_width=True):
+        st.session_state.active_nav = "🔍 Feedback Explorer"
+        st.rerun()
 
-    st.markdown("<div style='font-size: 0.65rem; color: #94A3B8; text-align: center; margin-top: 6px;'>v2.0.0 • Powered by AI ✨</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 0.65rem; color: #64748B; text-align: center; margin-top: 8px;'>v2.0.0 • Powered by AI ✨</div>", unsafe_allow_html=True)
 
 # ----------------- Instant Cache Fast-Path (0.02s Load Time) ----------------- #
 sample_cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_processed.pkl')
