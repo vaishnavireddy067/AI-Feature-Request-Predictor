@@ -4,6 +4,7 @@ import numpy as np
 import os
 import io
 import time
+import textwrap
 from datetime import datetime
 
 # Import utils
@@ -91,48 +92,57 @@ st.markdown("""
         background-color: #F8F9FE !important;
     }
 
-    /* 4. SIDEBAR NAVIGATION MENU PILLS (NO RADIO CIRCLES) */
-    div[data-testid="stSidebar"] [data-baseweb="radio"] div:first-child,
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] svg,
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] input[type="radio"] {
+    /* 4. SIDEBAR NAVIGATION MENU (HIDE RADIO CIRCLES 100%, LIGHT TEXT) */
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label > *:not([data-testid="stMarkdownContainer"]) {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] input,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] svg {
         display: none !important;
         width: 0 !important;
         height: 0 !important;
         opacity: 0 !important;
+        position: absolute !important;
         pointer-events: none !important;
     }
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] label {
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label {
         display: flex !important;
         align-items: center !important;
         width: 100% !important;
         padding: 9px 14px !important;
         border-radius: 10px !important;
-        font-size: 0.85rem !important;
-        font-weight: 500 !important;
-        color: #94A3B8 !important;
         cursor: pointer !important;
         margin: 2px 0 !important;
         border: 1px solid transparent !important;
         background: transparent !important;
-        transition: background-color 0.15s ease, color 0.15s ease !important;
+        transition: background-color 0.15s ease !important;
     }
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: #FFFFFF !important;
-    }
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
-        background: #5B4DF5 !important;
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 12px rgba(91, 77, 245, 0.35) !important;
-    }
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p {
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-    }
-    div[data-testid="stSidebar"] div[data-testid="stRadio"] p {
-        font-size: 0.86rem !important;
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label p,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] p,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] span {
+        color: #CBD5E1 !important;
+        font-size: 0.88rem !important;
+        font-weight: 500 !important;
         margin: 0 !important;
+        padding: 0 !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover p {
+        color: #FFFFFF !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
+        background: #5B4DF5 !important;
+        box-shadow: 0 4px 14px rgba(91, 77, 245, 0.45) !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
     }
 
     /* 5. NATIVE CONTAINER CARDS STYLING (WHITE WITH SUBTLE SHADOW & RADIUS) */
@@ -331,7 +341,7 @@ for k, v in state_defaults.items():
 # ----------------- Sidebar (Dark Luxury Theme matching target design) ----------------- #
 with st.sidebar:
     # Top Brand Logo
-    st.markdown("""
+    st.html(textwrap.dedent("""
     <div style="display: flex; align-items: center; gap: 12px; padding: 6px 4px 18px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px;">
         <div style="background: linear-gradient(135deg, #7C3AED 0%, #5B4DF5 100%); color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(91,77,245,0.4);">
             ✦
@@ -345,7 +355,7 @@ with st.sidebar:
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """))
 
     # Navigation Menu
     nav_options = [
@@ -366,10 +376,10 @@ with st.sidebar:
         st.session_state.active_nav = selected_nav
         st.rerun()
 
-    st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+    st.html("<div style='height: 30px;'></div>")
 
     # Bottom AI Copilot Card in Sidebar
-    st.markdown("""
+    st.html(textwrap.dedent("""
     <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px 12px; text-align: center; margin-bottom: 10px;">
         <div style="font-size: 1.6rem; margin-bottom: 4px;">🧠</div>
         <div style="font-size: 0.78rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">
@@ -382,7 +392,7 @@ with st.sidebar:
     <div style="font-size: 0.65rem; color: #64748B; text-align: center;">
         v2.0.0 • Powered by AI ✨
     </div>
-    """, unsafe_allow_html=True)
+    """))
 
 # ----------------- Instant Cache Fast-Path (0.02s Load Time) ----------------- #
 sample_cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_processed.pkl')
@@ -414,7 +424,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
     # Top Header Row (Matching Exact User Greeting & Controls)
     col_hdr_left, col_hdr_right = st.columns([6, 4])
     with col_hdr_left:
-        st.markdown("""
+        st.html(textwrap.dedent("""
         <div>
             <div style="font-size: 1.6rem; font-weight: 800; color: #0F172A; line-height: 1.2;">
                 Welcome back, Vaishnavi! 👋
@@ -423,7 +433,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 Discover what your customers really want, and build what matters.
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """))
         
     with col_hdr_right:
         col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([3, 2.5, 4.5])
@@ -433,7 +443,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button("📥 Export", data=csv_data, file_name="feedback_export.csv", mime="text/csv", use_container_width=True)
         with col_ctrl3:
-            st.markdown("""
+            st.html(textwrap.dedent("""
             <div class="user-profile-badge">
                 <div class="user-avatar">VR</div>
                 <div>
@@ -441,9 +451,9 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     <div style="font-size: 0.66rem; color: #64748B;">Product Strategist</div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """))
 
-    st.markdown("<div style='margin-bottom: 14px;'></div>", unsafe_allow_html=True)
+    st.html("<div style='margin-bottom: 14px;'></div>")
 
     # =========================================================================
     # VIEW 1: 🏠 OVERVIEW (EXACT PIXEL MATCH FOR media_1795426296780_d98b4c8b)
@@ -455,7 +465,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         
         # 1. Total Feedback
         with col_k1:
-            st.markdown("""
+            st.html(textwrap.dedent("""
             <div class="kpi-box">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="kpi-icon-wrap kpi-purple">💬</div>
@@ -473,11 +483,11 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     </svg>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """))
 
         # 2. Feature Clusters
         with col_k2:
-            st.markdown("""
+            st.html(textwrap.dedent("""
             <div class="kpi-box">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="kpi-icon-wrap kpi-blue">🗂️</div>
@@ -500,11 +510,11 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     </svg>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """))
 
         # 3. High Priority Features
         with col_k3:
-            st.markdown("""
+            st.html(textwrap.dedent("""
             <div class="kpi-box">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="kpi-icon-wrap kpi-green">⭐</div>
@@ -525,11 +535,11 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     </svg>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """))
 
         # 4. Emerging Trends
         with col_k4:
-            st.markdown("""
+            st.html(textwrap.dedent("""
             <div class="kpi-box">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="kpi-icon-wrap kpi-orange">🔥</div>
@@ -550,9 +560,9 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     </svg>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """))
 
-        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+        st.html("<div style='margin-bottom: 12px;'></div>")
 
         # ----------------- MIDDLE SECTION (3 CARDS) ----------------- #
         col_m1, col_m2, col_m3 = st.columns([5.3, 2.5, 2.2])
@@ -560,7 +570,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
         # 1. Demand Trend Card (53% Width)
         with col_m1:
             with st.container(border=True):
-                st.markdown("""
+                st.html(textwrap.dedent("""
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
                     <div>
                         <div style="font-size: 0.96rem; font-weight: 700; color: #0F172A; display: flex; align-items: center; gap: 6px;">
@@ -583,44 +593,44 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         </div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """))
                 fig_trend = plot_target_demand_trend(df)
                 st.plotly_chart(fig_trend, use_container_width=True, config={'displayModeBar': False})
 
         # 2. Sentiment Overview Card (25% Width)
         with col_m2:
             with st.container(border=True):
-                st.markdown("""
+                st.html(textwrap.dedent("""
                 <div>
                     <div style="font-size: 0.94rem; font-weight: 700; color: #0F172A;">❤️ Sentiment Overview</div>
                     <div style="font-size: 0.73rem; color: #64748B; margin-top: 1px;">Customer sentiment distribution</div>
                 </div>
-                """, unsafe_allow_html=True)
+                """))
                 
                 col_d_left, col_d_right = st.columns([6, 4])
                 with col_d_left:
                     fig_donut = plot_target_sentiment_donut(df)
                     st.plotly_chart(fig_donut, use_container_width=True, config={'displayModeBar': False})
                 with col_d_right:
-                    st.markdown("""
+                    st.html(textwrap.dedent("""
                     <div style="padding-top: 24px; font-size: 0.75rem; color: #334155; line-height: 2.1;">
-                        <div><span style="color: #F59E0B; font-weight: 900;">●</span> <strong>Positive</strong> &nbsp;72%</div>
-                        <div><span style="color: #06B6D4; font-weight: 900;">●</span> <strong>Neutral</strong> &nbsp;&nbsp;16%</div>
+                        <div><span style="color: #10B981; font-weight: 900;">●</span> <strong>Positive</strong> &nbsp;72%</div>
+                        <div><span style="color: #F59E0B; font-weight: 900;">●</span> <strong>Neutral</strong> &nbsp;&nbsp;16%</div>
                         <div><span style="color: #EF4444; font-weight: 900;">●</span> <strong>Negative</strong> 12%</div>
                     </div>
-                    """, unsafe_allow_html=True)
+                    """))
                     
-                st.markdown("""
+                st.html(textwrap.dedent("""
                 <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 6px 10px; margin-top: 4px;">
                     <div style="font-size: 0.73rem; font-weight: 700; color: #047857;">💡 Sentiment is improving! ↑ +8%</div>
                     <div style="font-size: 0.68rem; color: #065F46;">More customers are satisfied with your product direction.</div>
                 </div>
-                """, unsafe_allow_html=True)
+                """))
 
         # 3. AI Copilot Robot Card (22% Width)
         with col_m3:
-            st.markdown("""
-            <div style="background: linear-gradient(135deg, #EDE9FE 0%, #E0E7FF 100%); border: 1px solid #DDD6FE; border-radius: 16px; padding: 18px 16px; min-height: 338px; display: flex; flex-direction: column; justify-content: space-between; text-align: center;">
+            st.html(textwrap.dedent("""
+            <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border: 1px solid #C7D2FE; border-radius: 16px; padding: 18px 16px; min-height: 338px; display: flex; flex-direction: column; justify-content: space-between; text-align: center;">
                 <div>
                     <div style="font-size: 0.88rem; font-weight: 800; color: #3730A3; line-height: 1.35; margin-bottom: 12px;">
                         Great momentum!<br>Focus on trending features.
@@ -653,17 +663,17 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     Generate Sprint PRD ✨
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """))
 
-        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+        st.html("<div style='margin-bottom: 12px;'></div>")
 
         # ----------------- BOTTOM SECTION (3 EQUAL CARDS IN A ROW) ----------------- #
         col_b1, col_b2, col_b3 = st.columns([3.5, 3.5, 3.0])
         
         # 1. Top Feature Requests (Ranked by Smart RICE Score)
         with col_b1:
-            with st.container(border=True):
-                st.markdown("""
+            st.html(textwrap.dedent("""
+            <div style="background: #FFFFFF; border: 1px solid #EAEBF5; border-radius: 16px; padding: 16px 18px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02); min-height: 295px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <div>
                         <div style="font-size: 0.94rem; font-weight: 700; color: #0F172A;">🏆 Top Feature Requests</div>
@@ -675,7 +685,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 </div>
                 
                 <div style="font-size: 0.76rem;">
-                    <div style="display: grid; grid-template-columns: 20px 1fr 60px 75px 25px; padding: 6px 0; border-bottom: 1px solid #F1F5F9; color: #64748B; font-weight: 600;">
+                    <div style="display: grid; grid-template-columns: 20px 1fr 55px 75px 25px; padding: 6px 0; border-bottom: 1px solid #F1F5F9; color: #64748B; font-weight: 600;">
                         <span>#</span>
                         <span>Feature</span>
                         <span>RICE</span>
@@ -683,7 +693,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         <span>Trend</span>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 20px 1fr 60px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
+                    <div style="display: grid; grid-template-columns: 20px 1fr 55px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
                         <span style="color: #94A3B8; font-weight: 700;">1</span>
                         <span style="font-weight: 600; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📊 AI-Powered Analytics</span>
                         <span style="font-weight: 800; color: #4F46E5;">9.4</span>
@@ -691,7 +701,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         <span style="color: #10B981; font-weight: 800;">↗</span>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 20px 1fr 60px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
+                    <div style="display: grid; grid-template-columns: 20px 1fr 55px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
                         <span style="color: #94A3B8; font-weight: 700;">2</span>
                         <span style="font-weight: 600; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📱 Mobile App Support</span>
                         <span style="font-weight: 800; color: #4F46E5;">8.9</span>
@@ -699,7 +709,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         <span style="color: #10B981; font-weight: 800;">↗</span>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 20px 1fr 60px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
+                    <div style="display: grid; grid-template-columns: 20px 1fr 55px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
                         <span style="color: #94A3B8; font-weight: 700;">3</span>
                         <span style="font-weight: 600; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📥 Advanced Data Export</span>
                         <span style="font-weight: 800; color: #4F46E5;">8.7</span>
@@ -707,7 +717,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         <span style="color: #10B981; font-weight: 800;">↗</span>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 20px 1fr 60px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
+                    <div style="display: grid; grid-template-columns: 20px 1fr 55px 75px 25px; padding: 7px 0; border-bottom: 1px solid #F8FAFC; align-items: center;">
                         <span style="color: #94A3B8; font-weight: 700;">4</span>
                         <span style="font-weight: 600; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🔔 Real-time Notifications</span>
                         <span style="font-weight: 800; color: #4F46E5;">8.2</span>
@@ -715,7 +725,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         <span style="color: #94A3B8; font-weight: 800;">—</span>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 20px 1fr 60px 75px 25px; padding: 7px 0; align-items: center;">
+                    <div style="display: grid; grid-template-columns: 20px 1fr 55px 75px 25px; padding: 7px 0; align-items: center;">
                         <span style="color: #94A3B8; font-weight: 700;">5</span>
                         <span style="font-weight: 600; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🌙 Dark Mode</span>
                         <span style="font-weight: 800; color: #4F46E5;">7.8</span>
@@ -723,12 +733,13 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         <span style="color: #10B981; font-weight: 800;">↗</span>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """))
 
         # 2. AI Insights (With Mini Sparklines)
         with col_b2:
-            with st.container(border=True):
-                st.markdown("""
+            st.html(textwrap.dedent("""
+            <div style="background: #FFFFFF; border: 1px solid #EAEBF5; border-radius: 16px; padding: 16px 18px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02); min-height: 295px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                     <div>
                         <div style="font-size: 0.94rem; font-weight: 700; color: #0F172A;">✨ AI Insights</div>
@@ -740,7 +751,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <!-- Insight 1 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-radius: 8px; background: #FAF5FF; border: 1px solid #F3E8FF;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; background: #FAF5FF; border: 1px solid #F3E8FF;">
                         <div style="display: flex; gap: 8px; align-items: flex-start;">
                             <span style="color: #9333EA; font-weight: 800; font-size: 0.85rem;">↗</span>
                             <div>
@@ -754,7 +765,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     </div>
                     
                     <!-- Insight 2 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-radius: 8px; background: #FFF1F2; border: 1px solid #FFE4E6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; background: #FFF1F2; border: 1px solid #FFE4E6;">
                         <div style="display: flex; gap: 8px; align-items: flex-start;">
                             <span style="font-size: 0.85rem;">⚠️</span>
                             <div>
@@ -768,7 +779,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     </div>
                     
                     <!-- Insight 3 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-radius: 8px; background: #EFF6FF; border: 1px solid #DBEAFE;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; background: #EFF6FF; border: 1px solid #DBEAFE;">
                         <div style="display: flex; gap: 8px; align-items: flex-start;">
                             <span style="font-size: 0.85rem;">💡</span>
                             <div>
@@ -781,12 +792,13 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         </svg>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """))
 
         # 3. Product Roadmap (Now / Next / Later)
         with col_b3:
-            with st.container(border=True):
-                st.markdown("""
+            st.html(textwrap.dedent("""
+            <div style="background: #FFFFFF; border: 1px solid #EAEBF5; border-radius: 16px; padding: 16px 18px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02); min-height: 295px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <div>
                         <div style="font-size: 0.94rem; font-weight: 700; color: #0F172A;">🗺️ Product Roadmap</div>
@@ -798,42 +810,43 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 0.72rem;">
                     <!-- Now Column -->
-                    <div style="background: #FDF2F2; border: 1px solid #FEE2E2; border-radius: 8px; padding: 6px 6px;">
+                    <div style="background: #FDF2F2; border: 1px solid #FEE2E2; border-radius: 8px; padding: 8px 6px;">
                         <div style="font-weight: 800; color: #DC2626; margin-bottom: 6px;">🔥 Now</div>
                         <div style="color: #475569; line-height: 1.45; font-size: 0.69rem;">
-                            <div>• AI Analytics Dashboard</div>
-                            <div>• Performance Boost</div>
-                            <div>• Security Patch</div>
+                            <div>• AI Analytics</div>
+                            <div>• Performance</div>
+                            <div>• Security</div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.65rem; color: #94A3B8; font-weight: 600;">3 Items</div>
+                        <div style="margin-top: 10px; font-size: 0.65rem; color: #94A3B8; font-weight: 600;">3 Items</div>
                     </div>
                     
                     <!-- Next Column -->
-                    <div style="background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 8px; padding: 6px 6px;">
+                    <div style="background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 8px; padding: 8px 6px;">
                         <div style="font-weight: 800; color: #2563EB; margin-bottom: 6px;">⭐ Next</div>
                         <div style="color: #475569; line-height: 1.45; font-size: 0.69rem;">
-                            <div>• Mobile App Support</div>
-                            <div>• Advanced Export</div>
-                            <div>• Custom Reports</div>
+                            <div>• Mobile App</div>
+                            <div>• Adv. Export</div>
+                            <div>• Custom Rep.</div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.65rem; color: #94A3B8; font-weight: 600;">3 Items</div>
+                        <div style="margin-top: 10px; font-size: 0.65rem; color: #94A3B8; font-weight: 600;">3 Items</div>
                     </div>
                     
                     <!-- Later Column -->
-                    <div style="background: #F5F3FF; border: 1px solid #EDE9FE; border-radius: 8px; padding: 6px 6px;">
+                    <div style="background: #F5F3FF; border: 1px solid #EDE9FE; border-radius: 8px; padding: 8px 6px;">
                         <div style="font-weight: 800; color: #7C3AED; margin-bottom: 6px;">🧊 Later</div>
                         <div style="color: #475569; line-height: 1.45; font-size: 0.69rem;">
-                            <div>• Multi-language UI</div>
-                            <div>• Enterprise SSO</div>
+                            <div>• Multi-lang UI</div>
+                            <div>• SSO Auth</div>
                             <div>• API v2</div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.65rem; color: #94A3B8; font-weight: 600;">3 Items</div>
+                        <div style="margin-top: 10px; font-size: 0.65rem; color: #94A3B8; font-weight: 600;">3 Items</div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """))
 
         # ----------------- BOTTOM EMERGING ALERT BANNER ----------------- #
-        st.markdown("""
+        st.html(textwrap.dedent("""
         <div class="emerging-alert-bar">
             <div class="alert-text">
                 <span style="font-size: 1.05rem;">🔔</span>
@@ -843,7 +856,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 <button class="alert-btn">View Details →</button>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """))
 
     # =========================================================================
     # VIEW 2: 🔍 FEEDBACK EXPLORER

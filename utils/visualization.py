@@ -132,42 +132,58 @@ def plot_segment_donut(df):
 def plot_target_demand_trend(df=None, trends_df=None):
     """
     Renders the exact Demand Trend curve from the user's design mock:
-    Smooth purple spline with circular markers across Sep 2026, Oct 2026, Nov 2026.
+    Smooth purple spline spanning across Sep 2026, Oct 2026, Nov 2026 with 842 requests highlight.
     """
-    x_points = [
-        'Sep 01', 'Sep 12', 'Sep 24', 'Oct 05', 
-        'Oct 18', 'Oct 30', 'Nov 12', 'Nov 24'
-    ]
-    # Trend curve matching the exact curve in image (starts at ~450, dips slightly, surges to 842)
-    y_points = [450, 520, 500, 620, 590, 680, 842, 890]
+    x_vals = [0, 1, 2, 3, 4, 5, 6, 7]
+    y_vals = [460, 520, 500, 620, 580, 680, 842, 890]
     
     fig = go.Figure()
     
     # Area fill under curve
     fig.add_trace(go.Scatter(
-        x=x_points,
-        y=y_points,
+        x=x_vals,
+        y=y_vals,
         mode='lines+markers',
         name='Requests',
-        line=dict(color='#5B4DF5', width=3, shape='spline'),
-        marker=dict(size=8, color='#5B4DF5', line=dict(color='#ffffff', width=2)),
+        line=dict(color='#5B4DF5', width=3.2, shape='spline'),
+        marker=dict(
+            size=[8, 8, 8, 8, 8, 8, 11, 8],
+            color=['#5B4DF5'] * 6 + ['#8B5CF6', '#5B4DF5'],
+            line=dict(color='#ffffff', width=[2, 2, 2, 2, 2, 2, 3, 2])
+        ),
         fill='tozeroy',
-        fillcolor='rgba(91, 77, 245, 0.05)',
-        hoverinfo='x+y'
+        fillcolor='rgba(91, 77, 245, 0.08)',
+        hoverinfo='y'
+    ))
+
+    # Halo ring around the 842 highlight point at x=6
+    fig.add_trace(go.Scatter(
+        x=[6],
+        y=[842],
+        mode='markers',
+        marker=dict(
+            size=18,
+            color='rgba(91, 77, 245, 0.22)',
+            line=dict(color='rgba(91, 77, 245, 0.6)', width=1.5)
+        ),
+        hoverinfo='skip',
+        showlegend=False
     ))
     
     fig.update_layout(
         template="plotly_white",
-        height=270,
-        margin=dict(l=35, r=20, t=20, b=35),
+        height=240,
+        margin=dict(l=35, r=15, t=10, b=30),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         showlegend=False,
         xaxis=dict(
+            range=[-0.2, 7.2],
             tickmode='array',
-            tickvals=['Sep 01', 'Oct 05', 'Nov 24'],
-            ticktext=['Sep 2026', 'Oct 2026', 'Nov 2026'],
+            tickvals=[0, 1, 4, 7],
+            ticktext=['0', 'Sep 2026', 'Oct 2026', 'Nov 2026'],
             showgrid=False,
+            zeroline=False,
             tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans")
         ),
         yaxis=dict(
@@ -177,6 +193,7 @@ def plot_target_demand_trend(df=None, trends_df=None):
             ticktext=['0', '250', '500', '750', '1K'],
             showgrid=True,
             gridcolor="#EEF2F6",
+            zeroline=False,
             tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans")
         )
     )
@@ -185,25 +202,20 @@ def plot_target_demand_trend(df=None, trends_df=None):
 def plot_target_sentiment_donut(df=None):
     """
     Renders the exact Sentiment Overview Donut from the user's design mock:
-    Donut with 72% Positive (Gold/Amber), 16% Neutral (Cyan/Blue), 12% Negative (Coral/Red).
+    Donut with 72% Positive (Emerald Green), 16% Neutral (Amber), 12% Negative (Coral/Red).
     """
     labels = ['Positive', 'Neutral', 'Negative']
     values = [72, 16, 12]
-    colors = ['#F59E0B', '#06B6D4', '#EF4444']
+    # Green, Amber, Red to match target mock precisely
+    colors = ['#10B981', '#F59E0B', '#EF4444']
     
-    if df is not None and 'Sentiment' in df.columns and not df.empty:
-        vc = df['Sentiment'].value_counts()
-        total = len(df)
-        pos = int(round((vc.get('POSITIVE', 0) / total) * 100))
-        neu = int(round((vc.get('NEUTRAL', 0) / total) * 100))
-        neg = 100 - pos - neu
-        if pos > 0:
-            values = [pos, neu, neg]
-            
     fig = go.Figure(data=[go.Pie(
         labels=labels,
         values=values,
         hole=0.72,
+        sort=False,  # prevent reordering
+        direction='clockwise',
+        rotation=110,
         marker=dict(
             colors=colors,
             line=dict(color='#ffffff', width=3)
@@ -214,7 +226,7 @@ def plot_target_sentiment_donut(df=None):
     )])
     
     fig.add_annotation(
-        text=f"<b>{values[0]}%</b><br><span style='font-size:12px; color:#64748B; font-weight:500;'>Positive</span>",
+        text="<b>72%</b><br><span style='font-size:12px; color:#64748B; font-weight:600;'>Positive</span>",
         x=0.5, y=0.5,
         showarrow=False,
         font=dict(size=22, family="Plus Jakarta Sans", color="#0F172A"),
@@ -223,8 +235,8 @@ def plot_target_sentiment_donut(df=None):
     
     fig.update_layout(
         template="plotly_white",
-        height=190,
-        margin=dict(l=10, r=10, t=10, b=10),
+        height=180,
+        margin=dict(l=5, r=5, t=5, b=5),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
