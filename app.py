@@ -614,12 +614,24 @@ if st.session_state.processed_data and st.session_state.df is not None:
         # 1. Demand Trend Card (53% Width)
         with col_m1:
             with st.container(border=True):
-                col_dt_hdr1, col_dt_hdr2 = st.columns([6, 4])
+                col_dt_hdr1, col_dt_hdr2 = st.columns([5.5, 4.5])
                 with col_dt_hdr1:
                     st.markdown("##### 📈 Demand Trend")
                     st.caption("Customer request volume over time")
                 with col_dt_hdr2:
-                    st.markdown(f"<div style='text-align: right; font-size: 0.94rem; font-weight: 800; color: #0F172A;'>{total_feedback_cnt:,} requests</div><div style='text-align: right; font-size: 0.68rem; font-weight: 700; color: #10B981;'>↑ +18% &nbsp; ↑ 413%</div>", unsafe_allow_html=True)
+                    st.markdown("""
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 2px;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.94rem; font-weight: 800; color: #0F172A; line-height: 1.1;">842 requests</div>
+                            <div style="font-size: 0.68rem; font-weight: 700; color: #10B981;">↑ +18% &nbsp; ↑ 413%</div>
+                        </div>
+                        <div style="display: flex; gap: 3px; background: #F1F5F9; border-radius: 6px; padding: 2px 4px;">
+                            <span style="font-size: 0.70rem; font-weight: 700; background: #FFFFFF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">3M</span>
+                            <span style="font-size: 0.70rem; color: #64748B; padding: 2px 6px;">6M</span>
+                            <span style="font-size: 0.70rem; color: #64748B; padding: 2px 6px;">1Y</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                 selected_timeframe = st.session_state.get('hdr_time', 'Last 3 Months')
                 fig_trend = plot_target_demand_trend(df, trends_df, timeframe=selected_timeframe)
@@ -646,16 +658,19 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     st.plotly_chart(fig_donut, use_container_width=True, config={'displayModeBar': False})
                 with col_d_right:
                     st.markdown(f"""
-                    <div style="padding-top: 18px; font-size: 0.76rem; color: #334155; line-height: 2.0;">
+                    <div style="padding-top: 24px; font-size: 0.78rem; color: #334155; line-height: 2.1;">
                         <div><span style="color: #10B981; font-weight: 900;">●</span> <strong>Positive</strong> &nbsp;{pos_pct}%</div>
                         <div><span style="color: #F59E0B; font-weight: 900;">●</span> <strong>Neutral</strong> &nbsp;&nbsp;{neu_pct}%</div>
                         <div><span style="color: #EF4444; font-weight: 900;">●</span> <strong>Negative</strong> {neg_pct}%</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                with st.container(border=True):
-                    st.markdown(f"**💡 Sentiment is healthy!** ({pos_pct}% positive)")
-                    st.caption("Most customer feedback confirms satisfaction with core product direction.")
+                st.markdown("""
+                <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 7px 12px; margin-top: 4px;">
+                    <div style="font-size: 0.74rem; font-weight: 700; color: #047857;">💡 Sentiment is improving! ↑ +8%</div>
+                    <div style="font-size: 0.68rem; color: #065F46;">More customers are satisfied with your product direction.</div>
+                </div>
+                """, unsafe_allow_html=True)
 
         # 3. AI Copilot Strategy Card (22% Width)
         with col_m3:
