@@ -241,3 +241,88 @@ def test_ai_copilot_templates():
         effort="3.0"
     )
     assert "Introducing Dark Mode Dashboard" in rn
+
+# ----------------- 11. FLAGSHIP DIFFERENTIATOR TESTS ----------------- #
+def test_scenario_simulator(sample_raw_df):
+    from utils.simulator import SCENARIOS, simulate_ranking, compare_two_scenarios
+    sample_raw_df['Cluster'] = [0, 0, 1, 1, 2] * 4
+    ranking = rank_features(sample_raw_df)
+    
+    # Test simulation
+    sim_res = simulate_ranking(ranking, SCENARIOS["Customer First (Churn Prevention)"])
+    assert "Simulated_Score" in sim_res.columns
+    assert "Simulated_Rank" in sim_res.columns
+    assert len(sim_res) == 3
+    
+    # Test side-by-side comparison
+    comp = compare_two_scenarios(
+        ranking,
+        SCENARIOS["Customer First (Churn Prevention)"],
+        SCENARIOS["Revenue First (Enterprise Growth)"],
+        name_a="Customer First",
+        name_b="Revenue First"
+    )
+    assert "comparison_df" in comp
+    assert "Rank_Delta" in comp["comparison_df"].columns
+    assert "Movement" in comp["comparison_df"].columns
+    assert len(comp["top_gainers"]) <= 3
+
+def test_prd_generator(sample_raw_df):
+    from utils.prd_generator import generate_full_product_spec
+    sample_raw_df['Cluster'] = [0, 0, 1, 1, 2] * 4
+    prd = generate_full_product_spec(
+        theme_name="Enterprise SSO Authentication",
+        cluster_id=0,
+        df=sample_raw_df,
+        ranking_row={"RICE Score": 9.4, "Effort": 6.0, "Dominant Category": "Security"},
+        roadmap_row={"Score": 9.4, "Effort": 6.0, "Stage": "NOW"}
+    )
+    assert "# 📄 Product Requirements Document (PRD)" in prd
+    assert "User Stories" in prd
+    assert "Acceptance Criteria" in prd
+    assert "Given" in prd and "When" in prd and "Then" in prd
+    assert "Enterprise SSO Authentication" in prd
+
+def test_capacity_planner(sample_raw_df):
+    from utils.capacity import calculate_capacity_plan, auto_balance_roadmap_capacity
+    sample_raw_df['Cluster'] = [0, 0, 1, 1, 2] * 4
+    ranking = rank_features(sample_raw_df)
+    roadmap = generate_ai_roadmap(
+        sample_raw_df, ranking,
+        {0: ["Security"], 1: ["Dashboard"], 2: ["Mobile"]},
+        {0: "Two-factor auth", 1: "Dashboard layout", 2: "Mobile crash"}
+    )
+    
+    plan = calculate_capacity_plan(roadmap, team_velocity=20.0)
+    assert "summary_df" in plan
+    assert "Sprint 1" in plan["summary_df"].iloc[0]["Sprint"]
+    assert "Allocated_Points" in plan["summary_df"].columns
+    
+    # Auto balance
+    balanced_df, notes = auto_balance_roadmap_capacity(roadmap, team_velocity=20.0)
+    assert len(balanced_df) == len(roadmap)
+    assert "Stage" in balanced_df.columns
+
+def test_decision_history(sample_raw_df):
+    from utils.decision_log import init_decision_log, record_new_decision, explain_decision_comparison
+    sample_raw_df['Cluster'] = [0, 0, 1, 1, 2] * 4
+    ranking = rank_features(sample_raw_df)
+    roadmap = generate_ai_roadmap(
+        sample_raw_df, ranking,
+        {0: ["Security"], 1: ["Dashboard"], 2: ["Mobile"]},
+        {0: "Two-factor auth", 1: "Dashboard layout", 2: "Mobile crash"}
+    )
+    
+    log = init_decision_log(roadmap)
+    assert len(log) == 3
+    assert log[0]["Status"] in ["Approved (Prioritized)", "Planned (Target Q2)", "Deferred (Future Horizon)"]
+    
+    # Record new
+    updated = record_new_decision(log, "Security", "Approved (Prioritized)", "Critical churn risk", "Vaishnavi Reddy")
+    assert len(updated) == 4
+    assert updated[0]["Decision_ID"] == "DEC-004"
+    
+    # Explain
+    exp = explain_decision_comparison(roadmap.iloc[0]['Theme'], roadmap.iloc[1]['Theme'], roadmap)
+    assert "Strategic Decision Rationale" in exp
+

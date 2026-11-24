@@ -25,6 +25,10 @@ from utils.trends import analyze_demand_trends
 from utils.segments import analyze_customer_segments
 from utils.reporting import generate_markdown_report, generate_html_report, generate_pdf_report
 from utils.ai_agent import get_agent, query_agent, generate_prd, generate_release_notes
+from utils.simulator import SCENARIOS, simulate_ranking, compare_two_scenarios, plot_scenario_comparison_chart
+from utils.prd_generator import generate_full_product_spec
+from utils.capacity import calculate_capacity_plan, auto_balance_roadmap_capacity, plot_capacity_utilization_chart
+from utils.decision_log import init_decision_log, record_new_decision, explain_decision_comparison, export_decision_log_markdown
 
 import importlib
 import utils.visualization as vis
@@ -446,11 +450,23 @@ state_defaults = {
     'weight_confidence': 1.0,
     'weight_effort': 1.0,
     'active_preset': "Balanced (Standard RICE)",
-    'active_nav': "🏠 Overview"
+    'active_nav': "🏠 Overview",
+    'decision_history': [],
+    'team_velocity': 40.0,
+    'num_engineers': 5,
+    'sprint_duration': 2,
+    'sim_a_preset': "Customer First (Churn Prevention)",
+    'sim_b_preset': "Revenue First (Enterprise Growth)",
+    'selected_prd_theme': None,
+    'selected_evidence_cluster': None
 }
 for k, v in state_defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
+
+# Initialize decision history if empty and roadmap is present
+if st.session_state.roadmap_df is not None and not st.session_state.decision_history:
+    st.session_state.decision_history = init_decision_log(st.session_state.roadmap_df)
 
 # ----------------- Sidebar (Dark Luxury Theme matching target design) ----------------- #
 with st.sidebar:
@@ -475,10 +491,15 @@ with st.sidebar:
     nav_options = [
         "🏠 Overview",
         "🔍 Feedback Explorer",
+        "🔎 Customer Evidence",
         "✨ AI Insights",
         "🏆 Prioritization",
+        "🎯 Scenario Simulator",
+        "📝 AI PRD Generator",
         "🗺️ Roadmap",
+        "⚡ Capacity Planner",
         "🔗 Dependencies",
+        "📜 Decision History",
         "📊 Trends & Analytics",
         "📄 Reports",
         "⚙️ Settings"
@@ -568,6 +589,40 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 st.markdown("<div style='font-size: 0.78rem; font-weight: 700; color: #0F172A; line-height: 1.1;'>Vaishnavi Reddy ▾</div><div style='font-size: 0.65rem; color: #64748B;'>Product Strategist</div>", unsafe_allow_html=True)
 
     st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+
+    # ----------------- Unifying Workflow Stepper: Feedback → Decision → Execution ----------------- #
+    with st.container(border=True):
+        col_wf_lbl, col_wf_steps = st.columns([2.8, 7.2])
+        with col_wf_lbl:
+            st.markdown("<div style='font-size: 0.70rem; font-weight: 800; color: #4338CA; text-transform: uppercase; letter-spacing: 0.05em;'>⚡ Product Decision System</div><div style='font-size: 0.88rem; font-weight: 800; color: #0F172A; line-height: 1.15;'>Feedback → Decision → Execution</div>", unsafe_allow_html=True)
+        with col_wf_steps:
+            w1, w2, w3, w4, w5, w6 = st.columns(6)
+            with w1:
+                if st.button("💬 Feedback", key="wf_step_1", use_container_width=True, help="1. Explore raw customer feedback"):
+                    st.session_state.active_nav = "🔍 Feedback Explorer"
+                    st.rerun()
+            with w2:
+                if st.button("🔎 Evidence", key="wf_step_2", use_container_width=True, help="2. Audit verbatim customer quotes & segments"):
+                    st.session_state.active_nav = "🔎 Customer Evidence"
+                    st.rerun()
+            with w3:
+                if st.button("🎯 Simulate", key="wf_step_3", use_container_width=True, help="3. Priority Scenario Simulator (Customer First vs Revenue First)"):
+                    st.session_state.active_nav = "🎯 Scenario Simulator"
+                    st.rerun()
+            with w4:
+                if st.button("📝 PRD Spec", key="wf_step_4", use_container_width=True, help="4. AI Feature-to-PRD Generator with User Stories"):
+                    st.session_state.active_nav = "📝 AI PRD Generator"
+                    st.rerun()
+            with w5:
+                if st.button("⚡ Capacity", key="wf_step_5", use_container_width=True, help="5. Sprint Capacity Planner & Overbooking Detection"):
+                    st.session_state.active_nav = "⚡ Capacity Planner"
+                    st.rerun()
+            with w6:
+                if st.button("📜 Decisions", key="wf_step_6", use_container_width=True, help="6. Decision History & Explainability Audit"):
+                    st.session_state.active_nav = "📜 Decision History"
+                    st.rerun()
+
+    st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
 
     # =========================================================================
     # VIEW 1: 🏠 OVERVIEW (SAAS DESIGN CONNECTED TO REAL BACKEND DATA)
@@ -881,6 +936,158 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.markdown(f"- \"{dup_row['Request_Text']}\" *({dup_row['Customer_Segment']} tier, {dup_row['Upvotes']} upvotes)*")
 
     # =========================================================================
+    # VIEW: 🔎 CUSTOMER EVIDENCE DRILL-DOWN (DIFFERENTIATOR #3)
+    # =========================================================================
+    elif st.session_state.active_nav == "🔎 Customer Evidence":
+        st.markdown("### 🔎 Customer Evidence Drill-Down & Voice of Customer Audit")
+        st.caption("Drill down into verbatim customer quotes, user tiers, sentiment friction, and source channels behind every feature.")
+        
+        # Build theme mapping
+        theme_options = {}
+        if roadmap_df is not None and not roadmap_df.empty:
+            for _, r in roadmap_df.iterrows():
+                theme_options[str(r['Theme'])] = int(r['ID'])
+        elif 'Cluster' in ranking_df.columns:
+            for _, r in ranking_df.iterrows():
+                c_id = int(r['Cluster'])
+                theme_options[st.session_state.cluster_summaries.get(c_id, f"Cluster {c_id}")] = c_id
+
+        col_ev_sel, col_ev_quick = st.columns([7, 3])
+        with col_ev_sel:
+            selected_theme_name = st.selectbox(
+                "Select Feature Cluster to Audit:",
+                list(theme_options.keys()),
+                index=0,
+                key="evidence_theme_selector"
+            )
+            selected_cluster_id = theme_options[selected_theme_name]
+            st.session_state.selected_evidence_cluster = selected_cluster_id
+            
+        with col_ev_quick:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            if st.button("📝 Generate PRD for this Feature →", key="ev_to_prd_btn", use_container_width=True):
+                st.session_state.selected_prd_theme = selected_theme_name
+                st.session_state.active_nav = "📝 AI PRD Generator"
+                st.rerun()
+
+        # Cluster Data
+        cluster_data = df[df['Cluster'] == selected_cluster_id] if 'Cluster' in df.columns else df
+        c_reqs = len(cluster_data)
+        c_upvotes = int(cluster_data['Upvotes'].sum()) if 'Upvotes' in cluster_data.columns else c_reqs * 2
+        
+        # Segment counts
+        seg_counts = cluster_data['Customer_Segment'].value_counts().to_dict() if 'Customer_Segment' in cluster_data.columns else {}
+        ent_count = seg_counts.get('Enterprise', 0)
+        pro_count = seg_counts.get('Pro', 0)
+        free_count = seg_counts.get('Free', 0)
+        
+        # Sentiment counts
+        sent_counts = cluster_data['Sentiment'].value_counts().to_dict() if 'Sentiment' in cluster_data.columns else {}
+        neg_count = sent_counts.get('NEGATIVE', 0)
+        pos_count = sent_counts.get('POSITIVE', 0)
+        neu_count = sent_counts.get('NEUTRAL', 0)
+        neg_pct = round((neg_count / c_reqs) * 100) if c_reqs > 0 else 0
+        pos_pct = round((pos_count / c_reqs) * 100) if c_reqs > 0 else 0
+        
+        # Roadmap info for this cluster
+        r_item = roadmap_df[roadmap_df['ID'] == selected_cluster_id] if roadmap_df is not None and 'ID' in roadmap_df.columns else pd.DataFrame()
+        rice_val = float(r_item['Score'].values[0]) if not r_item.empty else 8.5
+        effort_val = float(r_item['Effort'].values[0]) if not r_item.empty else 5.0
+        stage_val = str(r_item['Stage'].values[0]) if not r_item.empty else 'NOW'
+        
+        # KPI Row
+        col_c1, col_c2, col_c3, col_c4, col_c5 = st.columns(5)
+        with col_c1:
+            with st.container(border=True):
+                st.caption("TOTAL REQUESTS")
+                st.metric("Requests", f"{c_reqs:,}", delta=f"{round(c_reqs/len(df)*100, 1)}% of all feedback", label_visibility="collapsed")
+        with col_c2:
+            with st.container(border=True):
+                st.caption("UPVOTES")
+                st.metric("Upvotes", f"{c_upvotes:,}", delta=f"Avg {round(c_upvotes/c_reqs, 1)}/req" if c_reqs > 0 else "", label_visibility="collapsed")
+        with col_c3:
+            with st.container(border=True):
+                st.caption("CUSTOMER FRICTION")
+                st.metric("Negative Sentiment", f"{neg_pct}%", delta="high friction" if neg_pct >= 30 else "healthy", delta_color="inverse", label_visibility="collapsed")
+        with col_c4:
+            with st.container(border=True):
+                st.caption("TOP TIER")
+                top_seg_label = "Enterprise" if ent_count >= max(pro_count, free_count) else ("Pro" if pro_count >= free_count else "Free")
+                st.metric("Top Tier", top_seg_label, delta=f"{ent_count} Enterprise", label_visibility="collapsed")
+        with col_c5:
+            with st.container(border=True):
+                st.caption("RICE & STAGE")
+                st.metric("Priority", f"{rice_val:.1f}", delta=f"Stage: {stage_val}", label_visibility="collapsed")
+
+        # Interactive Filter Bar for Customer Signals
+        st.markdown("#### 💬 Verbatim Customer Feedback & Exact Quotes")
+        col_f1, col_f2, col_f3, col_f4 = st.columns([3, 3, 3, 3])
+        with col_f1:
+            filter_sentiment = st.selectbox("Sentiment Filter", ["All Sentiments", "NEGATIVE (Friction)", "POSITIVE (Praise)", "NEUTRAL"], key="ev_filt_sent")
+        with col_f2:
+            filter_segment = st.selectbox("Customer Segment", ["All Segments", "Enterprise", "Pro", "Free"], key="ev_filt_seg")
+        with col_f3:
+            sources_available = ["All Sources"] + sorted(cluster_data['Source'].dropna().unique().tolist()) if 'Source' in cluster_data.columns else ["All Sources"]
+            filter_source = st.selectbox("Source Channel", sources_available, key="ev_filt_src")
+        with col_f4:
+            search_quote = st.text_input("Search feedback text...", placeholder="Filter by keyword...", key="ev_filt_kw")
+
+        # Apply filters
+        filtered_evidence = cluster_data.copy()
+        if filter_sentiment == "NEGATIVE (Friction)":
+            filtered_evidence = filtered_evidence[filtered_evidence['Sentiment'] == 'NEGATIVE']
+        elif filter_sentiment == "POSITIVE (Praise)":
+            filtered_evidence = filtered_evidence[filtered_evidence['Sentiment'] == 'POSITIVE']
+        elif filter_sentiment == "NEUTRAL":
+            filtered_evidence = filtered_evidence[filtered_evidence['Sentiment'] == 'NEUTRAL']
+            
+        if filter_segment != "All Segments":
+            filtered_evidence = filtered_evidence[filtered_evidence['Customer_Segment'] == filter_segment]
+            
+        if filter_source != "All Sources":
+            filtered_evidence = filtered_evidence[filtered_evidence['Source'] == filter_source]
+            
+        if search_quote:
+            filtered_evidence = filtered_evidence[filtered_evidence['Request_Text'].str.contains(search_quote, case=False, na=False)]
+
+        st.caption(f"Showing **{len(filtered_evidence)}** customer signals matching active filters:")
+
+        # Display quote cards (2 columns)
+        quotes_to_show = filtered_evidence.sort_values(by='Upvotes', ascending=False).head(12)
+        if quotes_to_show.empty:
+            st.info("No customer feedback requests match the selected filters.")
+        else:
+            q_cols = st.columns(2)
+            for idx, (_, q_row) in enumerate(quotes_to_show.iterrows()):
+                col_target = q_cols[idx % 2]
+                with col_target:
+                    with st.container(border=True):
+                        s_badge = "🔴 Negative" if q_row.get('Sentiment') == 'NEGATIVE' else ("🟢 Positive" if q_row.get('Sentiment') == 'POSITIVE' else "⚪ Neutral")
+                        seg_badge = q_row.get('Customer_Segment', 'User')
+                        src_badge = q_row.get('Source', 'Zendesk')
+                        upv = q_row.get('Upvotes', 1)
+                        dt = q_row.get('Date', '')
+                        
+                        st.markdown(f"**\"{q_row['Request_Text']}\"**")
+                        st.caption(f"🏢 **{seg_badge}** • 📡 {src_badge} • 👍 **{upv} upvotes** • {s_badge} • 📅 {dt}")
+
+        st.markdown("---")
+        with st.expander("📊 Complete Tabular Feedback Log for this Cluster", expanded=False):
+            st.dataframe(
+                filtered_evidence[['Request_ID', 'Date', 'Customer_Segment', 'Source', 'Sentiment', 'Upvotes', 'Request_Text']],
+                hide_index=True,
+                use_container_width=True
+            )
+            c_csv = filtered_evidence.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                f"📥 Export {selected_theme_name} Feedback CSV",
+                data=c_csv,
+                file_name=f"feedback_{selected_cluster_id}.csv",
+                mime="text/csv",
+                key="dl_cluster_csv"
+            )
+
+    # =========================================================================
     # VIEW 3: ✨ AI INSIGHTS
     # =========================================================================
     elif st.session_state.active_nav == "✨ AI Insights":
@@ -996,6 +1203,187 @@ if st.session_state.processed_data and st.session_state.df is not None:
         )
 
     # =========================================================================
+    # VIEW: 🎯 PRIORITY SCENARIO SIMULATOR (DIFFERENTIATOR #1)
+    # =========================================================================
+    elif st.session_state.active_nav == "🎯 Scenario Simulator":
+        st.markdown("### 🎯 Priority Scenario Simulator & Strategic Trade-off Modeler")
+        st.caption("Adjust impact, effort, and enterprise revenue weights to see how rankings change instantly. Compare scenarios like Customer First vs Revenue First.")
+        
+        # Strategic Presets Controls
+        col_scen_a, col_scen_b = st.columns(2)
+        
+        with col_scen_a:
+            with st.container(border=True):
+                st.markdown("#### 🔵 Scenario A (Baseline)")
+                preset_a = st.selectbox(
+                    "Strategic Framework A:",
+                    list(SCENARIOS.keys()) + ["Custom Weights"],
+                    index=1,  # Default: Customer First (Churn Prevention)
+                    key="sim_preset_a_select"
+                )
+                if preset_a != "Custom Weights":
+                    p_a = SCENARIOS[preset_a]
+                    st.caption(f"*{p_a['description']}*")
+                    w_r_a, w_i_a, w_c_a, w_e_a, ent_a = p_a['weight_reach'], p_a['weight_impact'], p_a['weight_confidence'], p_a['weight_effort'], p_a['enterprise_boost']
+                else:
+                    c1, c2, c3, c4, c5 = st.columns(5)
+                    with c1: w_r_a = st.slider("Reach (A)", 0.2, 3.0, 1.0, step=0.1, key="sim_wra")
+                    with c2: w_i_a = st.slider("Impact (A)", 0.2, 3.0, 2.0, step=0.1, key="sim_wia")
+                    with c3: w_c_a = st.slider("Conf (A)", 0.2, 3.0, 1.0, step=0.1, key="sim_wca")
+                    with c4: w_e_a = st.slider("Effort (A)", 0.2, 3.0, 1.0, step=0.1, key="sim_wea")
+                    with c5: ent_a = st.slider("ARR Mult (A)", 1.0, 4.0, 1.2, step=0.2, key="sim_enta")
+
+        with col_scen_b:
+            with st.container(border=True):
+                st.markdown("#### 🟢 Scenario B (Comparison)")
+                preset_b = st.selectbox(
+                    "Strategic Framework B:",
+                    list(SCENARIOS.keys()) + ["Custom Weights"],
+                    index=2,  # Default: Revenue First (Enterprise Growth)
+                    key="sim_preset_b_select"
+                )
+                if preset_b != "Custom Weights":
+                    p_b = SCENARIOS[preset_b]
+                    st.caption(f"*{p_b['description']}*")
+                    w_r_b, w_i_b, w_c_b, w_e_b, ent_b = p_b['weight_reach'], p_b['weight_impact'], p_b['weight_confidence'], p_b['weight_effort'], p_b['enterprise_boost']
+                else:
+                    c1, c2, c3, c4, c5 = st.columns(5)
+                    with c1: w_r_b = st.slider("Reach (B)", 0.2, 3.0, 1.8, step=0.1, key="sim_wrb")
+                    with c2: w_i_b = st.slider("Impact (B)", 0.2, 3.0, 2.0, step=0.1, key="sim_wib")
+                    with c3: w_c_b = st.slider("Conf (B)", 0.2, 3.0, 1.2, step=0.1, key="sim_wcb")
+                    with c4: w_e_b = st.slider("Effort (B)", 0.2, 3.0, 0.9, step=0.1, key="sim_web")
+                    with c5: ent_b = st.slider("ARR Mult (B)", 1.0, 4.0, 3.0, step=0.2, key="sim_entb")
+
+        # Run Comparison
+        weights_a = {'weight_reach': w_r_a, 'weight_impact': w_i_a, 'weight_confidence': w_c_a, 'weight_effort': w_e_a, 'enterprise_boost': ent_a}
+        weights_b = {'weight_reach': w_r_b, 'weight_impact': w_i_b, 'weight_confidence': w_c_b, 'weight_effort': w_e_b, 'enterprise_boost': ent_b}
+        
+        comparison_res = compare_two_scenarios(ranking_df, weights_a, weights_b, name_a=preset_a, name_b=preset_b, roadmap_df=roadmap_df)
+        comp_df = comparison_res['comparison_df']
+        
+        # Summary Row: Key Shifts & Takeaways
+        col_g1, col_g2, col_g3 = st.columns([3.5, 3.5, 3.0])
+        with col_g1:
+            with st.container(border=True):
+                st.markdown("##### 🚀 Top Movers in Scenario B")
+                for _, r in comparison_res['top_gainers'].iterrows():
+                    st.markdown(f"**{r['Theme']}**: **{r['Movement']}** (Rank #{r['Simulated_Rank_B']})")
+                    st.caption(f"Score: {r['Simulated_Score_A']:.0f} → **{r['Simulated_Score_B']:.0f}** pts")
+        with col_g2:
+            with st.container(border=True):
+                st.markdown("##### 🔻 Deprioritized in Scenario B")
+                for _, r in comparison_res['top_decliners'].iterrows():
+                    st.markdown(f"**{r['Theme']}**: **{r['Movement']}** (Rank #{r['Simulated_Rank_B']})")
+                    st.caption(f"Score: {r['Simulated_Score_A']:.0f} → **{r['Simulated_Score_B']:.0f}** pts")
+        with col_g3:
+            with st.container(border=True):
+                st.markdown("##### ⚖️ Strategic Takeaway")
+                st.caption(f"Switching from **{preset_a}** to **{preset_b}** shifts focus toward high-value Enterprise contracts and ACV expansion while relaxing lower-margin consumer friction penalties.")
+                if st.button("Apply Scenario B to Roadmap →", key="apply_scen_b_btn", type="primary", use_container_width=True):
+                    ranking_df['RICE Score'] = comp_df['Simulated_Score_B']
+                    st.session_state.ranking_df = ranking_df
+                    st.session_state.roadmap_df = generate_ai_roadmap(df, ranking_df, st.session_state.cluster_keywords, st.session_state.cluster_summaries)
+                    st.session_state.dependency_df = map_feature_dependencies(st.session_state.roadmap_df)
+                    st.success(f"✅ Committed {preset_b} priorities to active roadmap!")
+                    st.rerun()
+
+        # Side-by-Side Plotly Horizontal Comparison Chart
+        st.markdown("<div style='margin-top: 6px;'></div>", unsafe_allow_html=True)
+        fig_comp = plot_scenario_comparison_chart(comp_df, name_a=preset_a[:22], name_b=preset_b[:22])
+        st.plotly_chart(fig_comp, use_container_width=True)
+
+        # Complete Comparison Data Table
+        st.markdown("#### 📋 Full Side-by-Side Priority Table")
+        display_sim = comp_df[['Theme', 'Simulated_Rank_A', 'Simulated_Rank_B', 'Movement', 'Simulated_Score_A', 'Simulated_Score_B', 'Effort', 'Request Count', 'Enterprise Count']].copy()
+        display_sim.columns = ['Feature Theme', 'Rank (A)', 'Rank (B)', 'Rank Delta', 'Score (A)', 'Score (B)', 'Effort', 'Requests', 'Enterprise Reqs']
+        
+        st.dataframe(
+            display_sim,
+            column_config={
+                "Rank Delta": st.column_config.TextColumn("Shift"),
+                "Score (A)": st.column_config.NumberColumn("Score (A)", format="%.1f"),
+                "Score (B)": st.column_config.NumberColumn("Score (B)", format="%.1f"),
+                "Effort": st.column_config.NumberColumn("Effort (pts)", format="%.1f")
+            },
+            hide_index=True,
+            use_container_width=True
+        )
+
+    # =========================================================================
+    # VIEW: 📝 AI FEATURE-TO-PRD GENERATOR (DIFFERENTIATOR #2)
+    # =========================================================================
+    elif st.session_state.active_nav == "📝 AI PRD Generator":
+        st.markdown("### 📝 AI Feature-to-PRD Generator")
+        st.caption("Turn any prioritized feature into a mini product specification with Problem Statement, User Stories, Acceptance Criteria (Given/When/Then), Proposed Solution, and Success Metrics.")
+        
+        # Build theme selection list
+        theme_names = []
+        if roadmap_df is not None and not roadmap_df.empty:
+            theme_names = roadmap_df['Theme'].tolist()
+        elif 'Theme' in ranking_df.columns:
+            theme_names = ranking_df['Theme'].tolist()
+        else:
+            theme_names = [f"Feature {c}" for c in ranking_df['Cluster'].unique()]
+
+        default_idx = 0
+        if st.session_state.selected_prd_theme in theme_names:
+            default_idx = theme_names.index(st.session_state.selected_prd_theme)
+
+        col_p1, col_p2, col_p3 = st.columns([5, 3, 2])
+        with col_p1:
+            chosen_theme = st.selectbox("Select Feature Theme to Generate PRD:", theme_names, index=default_idx, key="prd_theme_choice")
+            st.session_state.selected_prd_theme = chosen_theme
+        with col_p2:
+            chosen_horizon = st.selectbox("Target Execution Horizon:", ["NOW (Current Sprint / Q1)", "NEXT (Upcoming Quarter / Q2)", "LATER (Backlog / H2)"], index=0, key="prd_horizon_choice")
+        with col_p3:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            gen_btn = st.button("⚡ Generate PRD", type="primary", use_container_width=True, key="btn_trigger_prd")
+
+        # Find cluster ID
+        target_cluster = 0
+        r_row = {}
+        if roadmap_df is not None and not roadmap_df.empty and 'Theme' in roadmap_df.columns:
+            match = roadmap_df[roadmap_df['Theme'] == chosen_theme]
+            if not match.empty:
+                target_cluster = int(match.iloc[0]['ID'])
+                r_row = match.iloc[0].to_dict()
+                
+        rank_row = {}
+        if ranking_df is not None and not ranking_df.empty and 'Cluster' in ranking_df.columns:
+            match_rank = ranking_df[ranking_df['Cluster'] == target_cluster]
+            if not match_rank.empty:
+                rank_row = match_rank.iloc[0].to_dict()
+
+        # Generate PRD Content
+        prd_text = generate_full_product_spec(
+            theme_name=chosen_theme,
+            cluster_id=target_cluster,
+            df=df,
+            ranking_row=rank_row,
+            roadmap_row=r_row
+        )
+
+        col_act1, col_act2, col_act3 = st.columns([3, 3, 4])
+        with col_act1:
+            st.download_button(
+                "📥 Download PRD (.md)",
+                data=prd_text,
+                file_name=f"PRD_{chosen_theme.replace(' ', '_')}.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+        with col_act2:
+            if st.button("⚡ Plan Sprint Capacity →", key="prd_to_capacity_btn", use_container_width=True):
+                st.session_state.active_nav = "⚡ Capacity Planner"
+                st.rerun()
+        with col_act3:
+            st.caption("✅ PRD formatted with Agile User Stories & BDD Given/When/Then acceptance criteria.")
+
+        st.markdown("---")
+        with st.container(border=True):
+            st.markdown(prd_text)
+
+    # =========================================================================
     # VIEW 5: 🗺️ ROADMAP (NOW / NEXT / LATER KANBAN)
     # =========================================================================
     elif st.session_state.active_nav == "🗺️ Roadmap":
@@ -1044,6 +1432,88 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.rerun()
 
     # =========================================================================
+    # VIEW: ⚡ ROADMAP CAPACITY PLANNER (DIFFERENTIATOR #4)
+    # =========================================================================
+    elif st.session_state.active_nav == "⚡ Capacity Planner":
+        st.markdown("### ⚡ Roadmap Capacity & Sprint Velocity Planner")
+        st.caption("Model engineering capacity, detect overbooked sprints, validate dependency sequences, and auto-balance the Now / Next / Later roadmap.")
+        
+        # Configuration Controls
+        with st.container(border=True):
+            col_cap1, col_cap2, col_cap3, col_cap4 = st.columns(4)
+            with col_cap1:
+                num_eng = st.number_input("Engineering Team Size", min_value=1, max_value=30, value=int(st.session_state.num_engineers), step=1, key="cap_engineers")
+                st.session_state.num_engineers = num_eng
+            with col_cap2:
+                sprint_w = st.selectbox("Sprint Duration", [1, 2, 3], index=1, key="cap_sprint_weeks")
+                st.session_state.sprint_duration = sprint_w
+            with col_cap3:
+                pts_per_eng = st.number_input("Velocity (Pts / Eng / Sprint)", min_value=2.0, max_value=25.0, value=8.0, step=1.0, key="cap_velocity_eng")
+            with col_cap4:
+                total_sprint_capacity = float(num_eng * pts_per_eng * (sprint_w / 2.0))
+                st.session_state.team_velocity = total_sprint_capacity
+                st.metric("Total Sprint Capacity", f"{total_sprint_capacity:.0f} pts", delta=f"{num_eng} engineers × {pts_per_eng:.0f} pts")
+
+        # Run Capacity Planning Engine
+        plan_res = calculate_capacity_plan(
+            roadmap_df=roadmap_df,
+            dependency_df=dependency_df,
+            team_velocity=total_sprint_capacity,
+            sprint_duration_weeks=sprint_w,
+            num_engineers=num_eng
+        )
+        summary_df = plan_res['summary_df']
+        overbooked_count = plan_res['overbooked_count']
+        dep_violations = plan_res['dependency_violations']
+        
+        # Alerts & Warnings
+        if overbooked_count > 0:
+            with st.container(border=True):
+                col_ob_txt, col_ob_btn = st.columns([7.5, 2.5])
+                with col_ob_txt:
+                    st.markdown(f"🚨 **Capacity Alert:** **{overbooked_count} sprints exceed team capacity limit ({total_sprint_capacity:.0f} pts)!** Overbooked sprints lead to missed delivery dates and developer burnout.")
+                with col_ob_btn:
+                    if st.button("🚀 Auto-Balance Capacity", type="primary", key="btn_auto_balance_cap", use_container_width=True):
+                        new_roadmap, balance_notes = auto_balance_roadmap_capacity(roadmap_df, team_velocity=total_sprint_capacity)
+                        st.session_state.roadmap_df = new_roadmap
+                        st.session_state.dependency_df = map_feature_dependencies(new_roadmap)
+                        st.success("✅ Roadmap successfully rebalanced! No sprint exceeds capacity.")
+                        st.rerun()
+
+        if dep_violations:
+            for v in dep_violations:
+                st.warning(f"⚠️ **Dependency Conflict:** {v['Violation']}")
+
+        # Plotly Capacity Bar Chart
+        fig_cap = plot_capacity_utilization_chart(summary_df, capacity_limit=total_sprint_capacity)
+        st.plotly_chart(fig_cap, use_container_width=True)
+
+        # Sprint Summary Table
+        st.markdown("#### 📅 Sprint Velocity & Capacity Breakdown")
+        st.dataframe(
+            summary_df[['Sprint', 'Horizon', 'Allocated_Points', 'Capacity_Points', 'Utilization_Pct', 'Status']],
+            column_config={
+                "Allocated_Points": st.column_config.NumberColumn("Allocated Load", format="%.1f pts"),
+                "Capacity_Points": st.column_config.NumberColumn("Max Capacity", format="%.1f pts"),
+                "Utilization_Pct": st.column_config.ProgressColumn("Capacity Utilization", format="%.0f%%", min_value=0, max_value=150)
+            },
+            hide_index=True,
+            use_container_width=True
+        )
+
+        st.markdown("---")
+        st.markdown("#### 📋 Feature-Level Sprint Schedule & Story Points")
+        st.dataframe(
+            plan_res['df_items'][['Theme', 'Assigned_Sprint', 'Stage', 'Story_Points', 'Score', 'Assigned Team', 'Summary']],
+            column_config={
+                "Story_Points": st.column_config.NumberColumn("Story Points", format="%.1f pts"),
+                "Score": st.column_config.NumberColumn("RICE Score", format="%.1f")
+            },
+            hide_index=True,
+            use_container_width=True
+        )
+
+    # =========================================================================
     # VIEW 6: 🔗 DEPENDENCIES
     # =========================================================================
     elif st.session_state.active_nav == "🔗 Dependencies":
@@ -1062,6 +1532,87 @@ if st.session_state.processed_data and st.session_state.df is not None:
             hide_index=True,
             use_container_width=True
         )
+
+    # =========================================================================
+    # VIEW: 📜 DECISION HISTORY & EXPLAINABILITY AUDIT TRAIL (DIFFERENTIATOR #5)
+    # =========================================================================
+    elif st.session_state.active_nav == "📜 Decision History":
+        st.markdown("### 📜 Decision History & Explainability Audit Trail")
+        st.caption("Maintain transparent, defensible governance over roadmap priorities. Record why features were approved, deferred, or rejected.")
+
+        # Ensure history is initialized
+        if not st.session_state.decision_history:
+            st.session_state.decision_history = init_decision_log(roadmap_df)
+
+        # Form to record a new decision
+        with st.expander("➕ Record New Product Roadmap Decision", expanded=False):
+            col_rec1, col_rec2, col_rec3 = st.columns(3)
+            with col_rec1:
+                rec_theme = st.selectbox("Feature Theme:", roadmap_df['Theme'].tolist() if roadmap_df is not None else [], key="rec_theme_sel")
+            with col_rec2:
+                rec_status = st.selectbox("Decision Status:", ["Approved (Prioritized)", "Planned (Target Q2)", "Deferred (Future Horizon)", "Rejected (Out of Scope)"], key="rec_status_sel")
+            with col_rec3:
+                rec_author = st.text_input("Decision Maker / PM:", value="Vaishnavi Reddy", key="rec_author_input")
+
+            rec_rationale = st.text_area("Strategic Decision Rationale & Evidence Notes:", placeholder="Explain why this decision was made, what customer evidence supports it, and what tradeoffs were accepted...", key="rec_notes_input")
+            
+            if st.button("💾 Record Decision to Audit Trail", type="primary", key="btn_save_decision"):
+                if rec_theme and rec_rationale:
+                    match_item = roadmap_df[roadmap_df['Theme'] == rec_theme].iloc[0] if roadmap_df is not None else {}
+                    st.session_state.decision_history = record_new_decision(
+                        st.session_state.decision_history,
+                        theme=rec_theme,
+                        status=rec_status,
+                        rationale=rec_rationale,
+                        decision_maker=rec_author,
+                        score=float(match_item.get('Score', 8.0)),
+                        horizon=str(match_item.get('Stage', 'NOW')),
+                        category=str(match_item.get('Assigned Team', 'Core Platform')),
+                        requests=int(match_item.get('Volume', 50))
+                    )
+                    st.success(f"✅ Decision logged for **{rec_theme}**!")
+                    st.rerun()
+
+        # Strategic Decision Explainer (Compare Any Two Features)
+        st.markdown("#### ⚖️ Strategic Decision Explainer: Defend Roadmaps with Evidence")
+        st.caption("Select any two features to generate an objective, data-backed comparative defense for leadership and stakeholders.")
+        
+        all_themes = roadmap_df['Theme'].tolist() if roadmap_df is not None and not roadmap_df.empty else []
+        col_exp1, col_exp2 = st.columns(2)
+        with col_exp1:
+            theme_choice_a = st.selectbox("Feature A (Prioritized):", all_themes, index=0 if len(all_themes) > 0 else 0, key="exp_theme_a")
+        with col_exp2:
+            theme_choice_b = st.selectbox("Feature B (Deferred / Lower Priority):", all_themes, index=min(1, len(all_themes)-1) if len(all_themes) > 0 else 0, key="exp_theme_b")
+
+        if theme_choice_a and theme_choice_b and theme_choice_a != theme_choice_b:
+            comparison_explanation = explain_decision_comparison(theme_choice_a, theme_choice_b, roadmap_df, ranking_df)
+            with st.container(border=True):
+                st.markdown(comparison_explanation)
+
+        # Decision Audit Trail Table
+        st.markdown("---")
+        st.markdown(f"#### 📜 Decision Audit Trail ({len(st.session_state.decision_history)} decisions recorded)")
+        
+        dec_df = pd.DataFrame(st.session_state.decision_history)
+        if not dec_df.empty:
+            col_flt_status, col_dl_dec = st.columns([7, 3])
+            with col_flt_status:
+                filt_status = st.multiselect("Filter by Status:", dec_df['Status'].unique().tolist(), default=dec_df['Status'].unique().tolist(), key="filt_dec_status")
+            with col_dl_dec:
+                md_dec = export_decision_log_markdown(st.session_state.decision_history)
+                st.download_button("📥 Export Audit Trail (.md)", data=md_dec, file_name="decision_audit_trail.md", mime="text/markdown", use_container_width=True)
+
+            filtered_dec = dec_df[dec_df['Status'].isin(filt_status)]
+            st.dataframe(
+                filtered_dec[['Decision_ID', 'Timestamp', 'Theme', 'Status', 'Horizon', 'Score_At_Decision', 'Customer_Requests', 'Decision_Maker', 'Rationale']],
+                column_config={
+                    "Score_At_Decision": st.column_config.NumberColumn("RICE Score", format="%.1f"),
+                    "Customer_Requests": st.column_config.NumberColumn("Requests", format="%d"),
+                    "Rationale": st.column_config.TextColumn("Strategic Rationale", width="large")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
 
     # =========================================================================
     # VIEW 7: 📊 TRENDS & ANALYTICS

@@ -1,6 +1,59 @@
 # 🚀 AI Feature Request Prioritizer
 
-An enterprise-grade, AI-powered product discovery and roadmap intelligence web application built with Python and Streamlit. It automates customer feedback analysis, detects duplicate requests using dense semantic vector search, clusters related feedback into cohesive strategic themes, calculates explainable **Smart Priority Scores (RICE)** with custom weights, maps architectural dependencies and blockers, forecasts demand velocity momentum, breaks down customer segments, and auto-generates executive reports and roadmaps.
+An enterprise-grade, AI-powered product discovery and decision-making system ("Feedback → Decision → Execution") built with Python and Streamlit. It automates customer feedback analysis, detects duplicate requests using dense semantic vector search, clusters related feedback into cohesive strategic themes, models multi-scenario prioritization trade-offs, auto-generates Agile PRD specifications with acceptance criteria, plans team sprint capacity with overbooking detection, and maintains an explainable decision audit trail.
+
+---
+
+## ⚡ The Product Decision System: Feedback → Decision → Execution
+
+Transforming unstructured customer signals into strategic, high-conviction product roadmaps:
+1. **💬 Customer Feedback:** Ingest thousands of multi-channel requests & user pain points (Zendesk, Intercom, Jira).
+2. **🧠 AI Discovery:** Group signals into dense semantic clusters with sentiment friction and demand trends.
+3. **🎯 Priority Scenario Simulator:** Model strategic trade-offs (e.g. *Customer First / Churn Prevention* vs *Revenue First / Enterprise Growth*).
+4. **🔎 Customer Evidence:** Audit verbatim customer quotes, user tiers, and source channels for 100% transparency.
+5. **📝 AI Product Brief (PRD):** Auto-generate engineering-ready PRDs with Agile User Stories and BDD Acceptance Criteria.
+6. **⚡ Realistic Roadmap & Capacity:** Plan sprint capacity (velocity points), detect overbooked sprints, and auto-balance.
+7. **📜 Decision History & Audit Trail:** Maintain defensible governance recording why features were approved, deferred, or rejected.
+
+---
+
+## 🌟 Flagship Differentiator Modules
+
+### 1. 🎯 Priority Scenario Simulator
+- **Live Sensitivity Modeler:** Adjust Customer Impact ($W_I$), Development Effort penalty ($W_E$), Reach ($W_R$), Statistical Confidence ($W_C$), and Enterprise ARR Boost multipliers in real-time.
+- **Scenario Comparison:** Compare two strategic frameworks side-by-side (e.g. **Customer First** vs **Revenue First** vs **Quick Wins**).
+- **Rank Shift Deltas:** Instant rank delta tracking (`▲ +4`, `▼ -3`, `— 0`) and top movers analysis.
+- **Visual Analytics:** Interactive horizontal Plotly grouped bar chart comparing normalized scores across scenarios.
+- **One-Click Commitment:** "Apply Scenario to Roadmap" instantly updates live execution horizons.
+
+### 2. 📝 AI Feature-to-PRD Generator
+- **Comprehensive Product Specifications:** Turns any prioritized feature cluster into an engineering-ready PRD.
+- **Problem Statement & Customer Friction:** Contextualized with real numbers (request volume, upvotes, negative sentiment %).
+- **Target Personas:** Enterprise Admin, Daily Operator, Platform Integrator.
+- **Agile User Stories:** Formal `As a [persona], I want [capability], So that [business value]` with priorities P0/P1/P2.
+- **BDD Acceptance Criteria:** `Given / When / Then` scenarios covering Happy Path, Input Validation & Errors, and p95 Latency SLAs.
+- **Proposed Architecture & Schema:** Frontend components, backend microservice endpoints, caching, and RBAC security.
+- **Success Metrics (KPIs):** North Star Metric, 30-day Adoption Rate, Support Ticket Deflection %, and Uptime SLA.
+- **Export Ready:** One-click download as Markdown (`.md`) or copyable code box for Jira and Linear.
+
+### 3. 🔎 Customer Evidence Drill-Down
+- **Transparent AI Recommendations:** Click any feature cluster to audit verbatim customer feedback, quotes, user segments, and source channels.
+- **Multi-Dimensional Filters:** Filter by sentiment (Negative Friction, Positive Praise, Neutral), user segment (Enterprise, Pro, Free), and source channel (Zendesk, Intercom, Jira, Community).
+- **Quote Feed:** Individual customer quote cards displaying exact quotes, customer tier badges, upvote counts, and timestamps.
+- **Raw Data Export:** View full tabular data and export cluster-specific CSV files.
+
+### 4. ⚡ Roadmap Capacity & Velocity Planner
+- **Sprint Capacity Modeling:** Inputs for Engineering Team Size, Sprint Duration (weeks), and Velocity per Engineer (story points).
+- **Effort-to-Points Conversion:** Standardizes domain effort into story point requirements.
+- **Overbooked Sprint Detection:** Automatically detects sprints that exceed 100% capacity limit (highlighted in alert red).
+- **Dependency Awareness:** Identifies execution order conflicts where a feature is scheduled before its architectural prerequisite.
+- **Auto-Balance Capacity:** One-click greedy algorithm rebalances overflow items across Now, Next, and Later horizons so no sprint is overbooked.
+
+### 5. 📜 Decision History & Explainability Audit Trail
+- **Defensible Product Governance:** Logs why a feature was Approved (Prioritized), Planned (Target Q2), Deferred, or Rejected.
+- **Structured Audit Fields:** Records Decision ID, Timestamp, Feature Theme, Status, PM Name, RICE score, customer requests, and rationale notes.
+- **Strategic Decision Explainer:** Compare any two features side-by-side to generate an objective, data-backed comparative defense for leadership.
+- **Export Audit Trail:** One-click download as Markdown (`.md`) or CSV.
 
 ---
 
