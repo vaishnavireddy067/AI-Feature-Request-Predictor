@@ -548,7 +548,7 @@ with st.sidebar:
 
     st.markdown("<div style='font-size: 0.65rem; color: #64748B; text-align: center; margin-top: 8px;'>v2.0.0 • Powered by AI ✨</div>", unsafe_allow_html=True)
 
-# ----------------- Instant Cache Fast-Path (0.02s Load Time) ----------------- #
+# ----------------- Preloaded Benchmark Dataset (Instant Exploration) ----------------- #
 sample_cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_processed.pkl')
 if not st.session_state.processed_data and os.path.exists(sample_cache_path):
     load_sample_dataset()
@@ -629,15 +629,15 @@ if st.session_state.processed_data and st.session_state.df is not None:
     # =========================================================================
     if st.session_state.active_nav == "🏠 Overview":
         
-        # ----------------- TOP 4 KPI CARDS ROW ----------------- #
+        # ----------------- TOP 4 KPI CARDS ROW (DYNAMIC METRICS) ----------------- #
         col_k1, col_k2, col_k3, col_k4 = st.columns(4)
         
         total_feedback_cnt = len(df)
         cluster_cnt = len(ranking_df)
-        if 'Priority_Score' in ranking_df.columns:
-            high_prio_cnt = len(ranking_df[ranking_df['Priority_Score'] >= 7.5])
+        if roadmap_df is not None and not roadmap_df.empty and 'Stage' in roadmap_df.columns:
+            high_prio_cnt = len(roadmap_df[roadmap_df['Stage'] == 'NOW'])
         elif 'RICE Score' in ranking_df.columns:
-            high_prio_cnt = len(ranking_df[ranking_df['RICE Score'] >= 1000]) if len(ranking_df[ranking_df['RICE Score'] >= 1000]) > 0 else 5
+            high_prio_cnt = len(ranking_df[ranking_df['RICE Score'] >= 7.5])
         else:
             high_prio_cnt = 5
         emerging_cnt = len(alerts) if alerts else 0
@@ -658,7 +658,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
             with st.container(border=True):
                 st.caption("⭐ HIGH PRIORITY FEATURES")
                 st.metric(label="High Priority", value=f"{high_prio_cnt}", delta="+25% momentum", label_visibility="collapsed")
-                st.caption("RICE Score > 7.5")
+                st.caption("Features in NOW Horizon (Score > 7.5)")
 
         with col_k4:
             with st.container(border=True):
@@ -736,15 +736,28 @@ if st.session_state.processed_data and st.session_state.df is not None:
         with col_m3:
             with st.container(border=True):
                 st.markdown("##### 🤖 Smart Strategy Copilot")
-                st.caption("Autonomous product intelligence")
+                st.caption("AI-assisted product intelligence")
                 st.markdown(
                     "**Great momentum!**\n\n"
                     "Focus on trending features with high RICE scores. "
-                    "AI has identified **5 critical features** ready for implementation this sprint."
+                    f"AI has identified **{high_prio_cnt} critical features** ready for implementation this sprint."
                 )
-                st.metric("Sprint Readiness", "94%", "+12% this cycle")
+                
+                # Transparent Sprint Feasibility Calculation
+                now_features = roadmap_df[roadmap_df['Stage'] == 'NOW'] if roadmap_df is not None and not roadmap_df.empty else pd.DataFrame()
+                if not now_features.empty and dependency_df is not None and not dependency_df.empty:
+                    blocked_now = dependency_df[(dependency_df['Current_Stage'] == 'NOW') & (dependency_df['Is_Blocked'])]
+                    unblocked_count = len(now_features) - len(blocked_now)
+                    feasibility_pct = int(round((unblocked_count / len(now_features)) * 100))
+                    feasibility_sub = f"{unblocked_count}/{len(now_features)} features unblocked"
+                else:
+                    feasibility_pct = 100
+                    feasibility_sub = "Prerequisites validated"
+
+                st.metric("Sprint Feasibility", f"{feasibility_pct}%", feasibility_sub)
+                st.caption("Calculated from unblocked dependencies in current sprint.")
                 if st.button("Generate Sprint PRD ✨", key="sprint_prd_btn", type="primary", use_container_width=True):
-                    st.session_state.active_nav = "📄 Reports"
+                    st.session_state.active_nav = "📝 AI PRD Generator"
                     st.rerun()
 
         st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
@@ -925,12 +938,13 @@ if st.session_state.processed_data and st.session_state.df is not None:
                             st.metric("Match", f"{sim:.2f}")
                     
         st.markdown("---")
-        st.markdown(f"#### 🔗 Duplicate Groups ({len(st.session_state.duplicate_groups or [])} groups merged)")
+        st.markdown(f"#### 🔗 Suggested Duplicate Groups ({len(st.session_state.duplicate_groups or [])} potential duplicate groups identified for review)")
         if st.session_state.duplicate_groups:
             for g in (st.session_state.duplicate_groups[:8]):
                 prim_row = df.iloc[g['primary_idx']]
-                with st.expander(f"📌 Primary: \"{prim_row['Request_Text']}\" ({g['count']} duplicates merged)"):
-                    st.caption(f"Semantic similarity: **{g['avg_similarity']}** | Category: **{prim_row['Category']}**")
+                with st.expander(f"📌 Primary Signal: \"{prim_row['Request_Text']}\" ({g['count']} potential duplicates suggested)"):
+                    st.caption(f"Semantic similarity: **{g['avg_similarity']}** (cosine threshold ≥ 0.88) | Category: **{prim_row['Category']}**")
+                    st.caption("Review suggested duplicate signals for human PM confirmation:")
                     for d_idx in g['duplicate_indices']:
                         dup_row = df.iloc[d_idx]
                         st.markdown(f"- \"{dup_row['Request_Text']}\" *({dup_row['Customer_Segment']} tier, {dup_row['Upvotes']} upvotes)*")
@@ -1123,6 +1137,39 @@ if st.session_state.processed_data and st.session_state.df is not None:
     elif st.session_state.active_nav == "🏆 Prioritization":
         st.markdown("### 🏆 Smart Priority Score (RICE) Engine & Sensitivity Sliders")
         st.caption("Calculate transparent, objective feature scores using Reach, Impact, Confidence, and Effort.")
+
+        with st.expander("📘 Scoring Framework: Mathematical Formula, Input Scales & Weight Modifiers", expanded=False):
+            st.markdown("""
+            #### 📐 Scoring Formula
+            $$\\text{Smart RICE} = \\frac{(\\text{Reach} \\times W_R) \\times (\\text{Impact} \\times W_I) \\times (\\text{Confidence} \\times W_C)}{\\max(0.5, \\text{Effort} \\times W_E)}$$
+            *When all weights ($W_R, W_I, W_C, W_E$) equal 1.0, this formula simplifies identically to standard RICE: $(\\text{Reach} \\times \\text{Impact} \\times \\text{Confidence}) / \\text{Effort}$.*
+            
+            #### 📊 Input Parameter Scales & Objective Definitions:
+            1. **Reach ($R$) — Affected User Volume**
+               - *Scale: 50 to 1,500 monthly affected users*
+               - Calculated objectively: $\\text{Reach} = (N_{\\text{requests}} \\times 10) + (N_{\\text{upvotes}} \\times 2) + (N_{\\text{Enterprise}} \\times 20) + (N_{\\text{Pro}} \\times 5)$
+               - $W_R$ ($0.2 - 2.5$, default $1.0$): Adjusts sensitivity to broad volume vs high-value accounts.
+            2. **Impact ($I$) — Business & Retention Impact**
+               - *Scale: 0.5 to 3.0 qualitative multiplier*
+               - `3.0` (Massive): Critical Enterprise blocker with $>40\%$ negative sentiment.
+               - `2.0` (High): Significant customer friction or major revenue driver.
+               - `1.5` (Medium-High): Broad user demand across $>8\%$ of total feedback.
+               - `1.0` (Medium): Standard expected functional improvement.
+               - `0.5` (Low): Minor cosmetic polish or primarily free-tier request.
+               - $W_I$ ($0.2 - 2.5$, default $1.0$): Emphasizes customer friction to combat churn.
+            3. **Confidence ($C$) — Statistical Sample Confidence**
+               - *Scale: 0.50 to 1.00 evidence confidence factor*
+               - `1.0` (100%): Very high sample density ($N \\ge 40$ requests).
+               - `0.9` (90%): Substantial sample size ($N \\ge 20$ requests).
+               - `0.8` (80%): Moderate evidence ($N \\ge 10$ requests).
+               - `0.65` (65%): Early signal ($N \\ge 5$ requests).
+               - `0.5` (50%): Low sample size ($N < 5$ requests).
+               - $W_C$ ($0.2 - 2.5$, default $1.0$): Penalizes speculative or low-sample requests.
+            4. **Effort ($E$) — Engineering Complexity**
+               - *Scale: 1.0 to 10.0 story points / sprint units*
+               - Estimated by architectural domain: UI/UX (3.0), Notifications (3.5), Dashboard (4.0), Reports (4.5), Performance (5.5), Mobile (6.0), API (6.5), Payments (7.5), Security/Auth (8.0). Clamped to min 0.5.
+               - $W_E$ ($0.2 - 2.5$, default $1.0$): Multiplies effort penalty. Higher $W_E$ heavily favors Quick Wins.
+            """)
         
         with st.expander("⚖️ Strategic Weight Presets & Sensitivity Sliders", expanded=True):
             col_preset, col_w_reach, col_w_impact, col_w_conf, col_w_eff = st.columns(5)
@@ -1624,7 +1671,8 @@ if st.session_state.processed_data and st.session_state.df is not None:
         fig_t = plot_interactive_trends(df, trends_df)
         st.plotly_chart(fig_t, use_container_width=True)
         
-        st.markdown("### 💼 Revenue-Weighted Priority Ranking (Enterprise Weighted 4x)")
+        st.markdown("### 💼 Strategic Preset: Revenue-Weighted Prioritization (Enterprise Weighted 4x - Configurable)")
+        st.caption("Strategic preset designed for B2B Enterprise growth. Multiplies Enterprise tier signals by 4x to model high ACV contract impact. This weighting is an adjustable PM preset, not a universal scoring rule.")
         if st.session_state.revenue_df is not None:
             st.dataframe(st.session_state.revenue_df, hide_index=True, use_container_width=True)
 

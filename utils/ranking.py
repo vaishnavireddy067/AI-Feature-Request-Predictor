@@ -65,9 +65,41 @@ def calculate_rice_score(
     weight_effort: float = 1.0
 ) -> float:
     """
-    Calculates RICE Score with customizable component weights:
-    Score = ((Reach * W_R) * (Impact * W_I) * (Confidence * W_C)) / (Effort * W_E)
-    Effort denominator is clamped to min 0.5 to prevent division by zero.
+    Calculates Smart Priority Score using the Weighted RICE Framework:
+    
+    FORMULA:
+        Smart RICE = ((Reach * W_R) * (Impact * W_I) * (Confidence * W_C)) / max(0.5, Effort * W_E)
+        
+    INPUT SCALES & DEFINITIONS:
+        - Reach (50 to 1,500): Estimated monthly affected users based on:
+          Reach = (Requests * 10) + (Upvotes * 2) + (Enterprise_Count * 20) + (Pro_Count * 5)
+          W_R (0.2 - 2.5): Weight on broad user volume vs segment focus.
+          
+        - Impact (0.5 to 3.0 scale): Qualitative business and user retention impact.
+          3.0 = Massive (Critical Enterprise blocker with >40% negative sentiment)
+          2.0 = High (Significant user friction or major revenue driver)
+          1.5 = Medium-High (Broad user demand across >8% of feedback)
+          1.0 = Medium (Standard expected functional enhancement)
+          0.5 = Low (Minor cosmetic polish, primarily free-tier)
+          W_I (0.2 - 2.5): Weight on customer friction and churn prevention.
+          
+        - Confidence (0.50 to 1.0 scale): Statistical evidence confidence based on sample size.
+          1.0  = 100% (Very High sample: >= 40 requests)
+          0.9  = 90% (Substantial sample: >= 20 requests)
+          0.8  = 80% (Moderate evidence: >= 10 requests)
+          0.65 = 65% (Early signal: >= 5 requests)
+          0.5  = 50% (Low sample: < 5 requests)
+          W_C (0.2 - 2.5): Penalizes speculative or unverified requests.
+          
+        - Effort (1.0 to 10.0 scale): Domain engineering complexity in story points.
+          UI/UX = 3.0, Notifications = 3.5, Dashboard = 4.0, Reports = 4.5,
+          Performance = 5.5, Mobile = 6.0, API = 6.5, Payments = 7.5, Security = 8.0.
+          Effort denominator is clamped to min 0.5 to prevent division by zero.
+          W_E (0.2 - 2.5): Effort penalty weight. Higher W_E favors quick wins.
+          
+    BASELINE:
+        When all weights = 1.0, this simplifies identically to standard RICE:
+        (Reach * Impact * Confidence) / Effort.
     """
     safe_effort = max(0.5, float(effort) * max(0.1, float(weight_effort)))
     effective_reach = float(reach) * max(0.1, float(weight_reach))
