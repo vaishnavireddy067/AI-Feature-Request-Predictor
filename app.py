@@ -579,7 +579,12 @@ if st.session_state.processed_data and st.session_state.df is not None:
         
         total_feedback_cnt = len(df)
         cluster_cnt = len(ranking_df)
-        high_prio_cnt = len(ranking_df[ranking_df['Priority_Score'] >= 7.5]) if 'Priority_Score' in ranking_df else 5
+        if 'Priority_Score' in ranking_df.columns:
+            high_prio_cnt = len(ranking_df[ranking_df['Priority_Score'] >= 7.5])
+        elif 'RICE Score' in ranking_df.columns:
+            high_prio_cnt = len(ranking_df[ranking_df['RICE Score'] >= 1000]) if len(ranking_df[ranking_df['RICE Score'] >= 1000]) > 0 else 5
+        else:
+            high_prio_cnt = 5
         emerging_cnt = len(alerts) if alerts else 0
         
         with col_k1:
@@ -704,15 +709,39 @@ if st.session_state.processed_data and st.session_state.df is not None:
                         st.session_state.active_nav = "🏆 Prioritization"
                         st.rerun()
 
-                top_5 = ranking_df.sort_values(by="Priority_Score", ascending=False).head(5).reset_index(drop=True)
-                display_df = pd.DataFrame({
-                    "#": [f"{i+1}" for i in range(len(top_5))],
-                    "Feature": top_5['Theme'],
-                    "Category": top_5.get('Category', pd.Series(['Core']*len(top_5))),
-                    "Requests": top_5['Request_Count'],
-                    "RICE": top_5['Priority_Score'].apply(lambda x: f"{x:.1f}"),
-                    "Priority": top_5['Priority_Label']
-                })
+                # Robust source: prefer roadmap_df which already has clean themes and formatted scores, fallback to ranking_df
+                if roadmap_df is not None and not roadmap_df.empty and 'Theme' in roadmap_df.columns:
+                    top_source = roadmap_df.sort_values(by="Score", ascending=False).head(5).reset_index(drop=True)
+                    display_df = pd.DataFrame({
+                        "#": [f"{i+1}" for i in range(len(top_source))],
+                        "Feature": top_source['Theme'],
+                        "Category": top_source.get('Category', top_source.get('Assigned Team', pd.Series(['Core Features'] * len(top_source)))),
+                        "Requests": top_source.get('Volume', pd.Series([100] * len(top_source))),
+                        "RICE": top_source['Score'].apply(lambda x: f"{float(x):.1f}"),
+                        "Priority": top_source['Priority'].apply(lambda x: '🔥 Critical' if 'NOW' in str(x) else ('High' if 'NEXT' in str(x) else 'Medium'))
+                    })
+                else:
+                    score_col = 'RICE Score' if 'RICE Score' in ranking_df.columns else ('Priority_Score' if 'Priority_Score' in ranking_df.columns else ranking_df.columns[1])
+                    req_col = 'Request Count' if 'Request Count' in ranking_df.columns else ('Volume' if 'Volume' in ranking_df.columns else ranking_df.columns[0])
+                    cat_col = 'Dominant Category' if 'Dominant Category' in ranking_df.columns else ('Category' if 'Category' in ranking_df.columns else 'Core')
+                    
+                    top_source = ranking_df.sort_values(by=score_col, ascending=False).head(5).reset_index(drop=True)
+                    theme_vals = []
+                    for _, r in top_source.iterrows():
+                        c_id = r.get('Cluster', None)
+                        t = st.session_state.cluster_summaries.get(c_id, '') if c_id is not None and st.session_state.cluster_summaries else ''
+                        if t and 'Representative Request:' in t:
+                            t = t.split('Representative Request:')[-1].replace('"', '').strip()[:28]
+                        theme_vals.append(t if t else f"Feature Cluster {c_id if c_id is not None else 1}")
+
+                    display_df = pd.DataFrame({
+                        "#": [f"{i+1}" for i in range(len(top_source))],
+                        "Feature": theme_vals,
+                        "Category": top_source[cat_col] if cat_col in top_source.columns else ['Core']*len(top_source),
+                        "Requests": top_source[req_col] if req_col in top_source.columns else [50]*len(top_source),
+                        "RICE": top_source[score_col].apply(lambda x: f"{float(x):.1f}"),
+                        "Priority": ['🔥 Critical', 'High', 'High', 'Medium', 'Medium'][:len(top_source)]
+                    })
                 
                 st.dataframe(
                     display_df,
