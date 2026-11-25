@@ -220,18 +220,23 @@ def plot_capacity_utilization_chart(summary_df: pd.DataFrame, capacity_limit: fl
     fig.update_layout(
         title=dict(
             text="<b>Sprint Velocity & Story Point Load vs Team Capacity</b>",
-            font=dict(size=14, color="#0F172A", family="Plus Jakarta Sans, sans-serif")
+            font=dict(size=13, color="#0F172A", family="Plus Jakarta Sans, sans-serif"),
+            x=0.0,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
         ),
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
-        height=320,
-        margin=dict(l=40, r=40, t=50, b=40),
-        xaxis=dict(gridcolor="transparent", tickfont=dict(size=11, color="#334155")),
+        height=340,
+        margin=dict(l=65, r=35, t=70, b=45),
+        xaxis=dict(showgrid=False, tickfont=dict(size=11, color="#334155", family="Plus Jakarta Sans, sans-serif")),
         yaxis=dict(
-            title="Story Points (Effort × 3)",
+            title=dict(text="Story Points (Effort × 3)", font=dict(size=12, color="#64748B", family="Plus Jakarta Sans, sans-serif")),
             gridcolor="#F1F5F9",
             zerolinecolor="#E2E8F0",
-            range=[0, max(summary_df['Allocated_Points'].max() * 1.25, capacity_limit * 1.3)]
+            range=[0, max(summary_df['Allocated_Points'].max() * 1.25, capacity_limit * 1.3)],
+            tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans, sans-serif")
         )
     )
     return fig

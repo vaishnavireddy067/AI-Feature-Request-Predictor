@@ -40,27 +40,95 @@ def plot_interactive_rice_matrix(roadmap_df):
             "Effort": "Engineering Effort (1 = Low, 10 = High)",
             "Score": "RICE Priority Score",
             "Volume": "Feedback Volume"
-        },
-        title="<b>Interactive RICE Priority Matrix (Impact vs. Effort)</b>"
+        }
     )
     
     max_score = df_plot['Score'].max() if not df_plot.empty else 100
     mid_score = max_score / 2.0
     
-    fig.add_shape(type="line", x0=5, y0=0, x1=5, y1=max_score*1.1, line=dict(color="rgba(156, 163, 175, 0.4)", dash="dash"))
-    fig.add_shape(type="line", x0=0, y0=mid_score, x1=10.5, y1=mid_score, line=dict(color="rgba(156, 163, 175, 0.4)", dash="dash"))
+    # Quadrant dividing lines
+    fig.add_shape(type="line", x0=5, y0=0, x1=5, y1=max_score * 1.15, line=dict(color="rgba(156, 163, 175, 0.4)", dash="dash"))
+    fig.add_shape(type="line", x0=0.5, y0=mid_score, x1=10.5, y1=mid_score, line=dict(color="rgba(156, 163, 175, 0.4)", dash="dash"))
     
-    fig.add_annotation(x=2.5, y=max_score*0.95, text="⭐ <b>Quick Wins</b><br>(High Impact, Low Effort)", showarrow=False, font=dict(color="rgba(16, 185, 129, 0.8)", size=12))
-    fig.add_annotation(x=7.5, y=max_score*0.95, text="🏗️ <b>Strategic Bets</b><br>(High Impact, High Effort)", showarrow=False, font=dict(color="rgba(59, 130, 246, 0.8)", size=12))
-    fig.add_annotation(x=2.5, y=mid_score*0.2, text="🩹 <b>Fill-ins</b><br>(Low Impact, Low Effort)", showarrow=False, font=dict(color="rgba(156, 163, 175, 0.8)", size=12))
-    fig.add_annotation(x=7.5, y=mid_score*0.2, text="🛑 <b>Time Sinks</b><br>(Low Impact, High Effort)", showarrow=False, font=dict(color="rgba(239, 68, 68, 0.8)", size=12))
+    # Quadrant annotations positioned with ample headroom and gentle badges
+    fig.add_annotation(
+        x=2.5, y=max_score * 1.10,
+        text="⭐ <b>Quick Wins</b><br><span style='font-size:10px; color:#047857;'>High Impact · Low Effort</span>",
+        showarrow=False,
+        bgcolor="rgba(236, 253, 245, 0.85)",
+        bordercolor="rgba(16, 185, 129, 0.3)",
+        borderwidth=1,
+        borderpad=4,
+        font=dict(color="#065F46", size=11, family="Plus Jakarta Sans, sans-serif")
+    )
+    fig.add_annotation(
+        x=7.5, y=max_score * 1.10,
+        text="🏗️ <b>Strategic Bets</b><br><span style='font-size:10px; color:#1D4ED8;'>High Impact · High Effort</span>",
+        showarrow=False,
+        bgcolor="rgba(239, 246, 255, 0.85)",
+        bordercolor="rgba(59, 130, 246, 0.3)",
+        borderwidth=1,
+        borderpad=4,
+        font=dict(color="#1E40AF", size=11, family="Plus Jakarta Sans, sans-serif")
+    )
+    fig.add_annotation(
+        x=2.5, y=mid_score * 0.18,
+        text="🩹 <b>Fill-ins</b><br><span style='font-size:10px; color:#475569;'>Low Impact · Low Effort</span>",
+        showarrow=False,
+        bgcolor="rgba(248, 250, 252, 0.85)",
+        bordercolor="rgba(203, 213, 225, 0.5)",
+        borderwidth=1,
+        borderpad=4,
+        font=dict(color="#475569", size=11, family="Plus Jakarta Sans, sans-serif")
+    )
+    fig.add_annotation(
+        x=7.5, y=mid_score * 0.18,
+        text="🛑 <b>Time Sinks</b><br><span style='font-size:10px; color:#B91C1C;'>Low Impact · High Effort</span>",
+        showarrow=False,
+        bgcolor="rgba(254, 242, 242, 0.85)",
+        bordercolor="rgba(239, 68, 68, 0.3)",
+        borderwidth=1,
+        borderpad=4,
+        font=dict(color="#991B1B", size=11, family="Plus Jakarta Sans, sans-serif")
+    )
     
     fig.update_layout(
         template="plotly_white",
+        title=dict(
+            text="<b>Interactive RICE Priority Matrix (Impact vs. Effort)</b>",
+            font=dict(size=14, color="#0F172A", family="Plus Jakarta Sans, sans-serif"),
+            x=0.0,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
+        ),
         height=540,
-        margin=dict(l=40, r=40, t=60, b=40),
-        xaxis=dict(range=[0.5, 10.5], showgrid=True, gridcolor="#f3f4f6"),
-        yaxis=dict(showgrid=True, gridcolor="#f3f4f6")
+        margin=dict(l=75, r=35, t=80, b=50),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.03,
+            xanchor="right",
+            x=1.0,
+            title_text="Stage: ",
+            font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
+        ),
+        xaxis=dict(
+            title=dict(text="Engineering Effort (1 = Low, 10 = High)", font=dict(size=12, color="#64748B", family="Plus Jakarta Sans, sans-serif")),
+            range=[0.5, 10.5],
+            showgrid=True,
+            gridcolor="#F1F5F9",
+            zeroline=False,
+            tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans, sans-serif")
+        ),
+        yaxis=dict(
+            title=dict(text="RICE Priority Score", font=dict(size=12, color="#64748B", family="Plus Jakarta Sans, sans-serif")),
+            range=[0, max_score * 1.25],
+            showgrid=True,
+            gridcolor="#F1F5F9",
+            zeroline=False,
+            tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans, sans-serif")
+        )
     )
     return fig
 
@@ -72,32 +140,94 @@ def plot_interactive_trends(df, trends_df=None):
     df_copy = df.copy()
     df_copy['Datetime'] = pd.to_datetime(df_copy['Date'], errors='coerce')
     df_copy = df_copy.dropna(subset=['Datetime'])
-    df_copy['Month'] = df_copy['Datetime'].dt.to_period('M').astype(str)
+    if df_copy.empty:
+        return go.Figure()
+        
+    df_copy = df_copy.sort_values(by='Datetime')
+    df_copy['Month'] = df_copy['Datetime'].dt.strftime('%b %Y')
     
-    monthly = df_copy.groupby(['Month', 'Sentiment']).size().reset_index(name='Count')
+    # Chronological unique months list
+    ordered_months = []
+    seen = set()
+    for m in df_copy['Month']:
+        if m not in seen:
+            seen.add(m)
+            ordered_months.append(m)
+            
+    monthly = df_copy.groupby(['Month', 'Sentiment']).size().unstack(fill_value=0)
+    monthly = monthly.reindex(ordered_months).fillna(0)
     
-    color_map = {
-        'POSITIVE': '#10b981',
-        'NEGATIVE': '#ef4444',
-        'NEUTRAL': '#94a3b8'
-    }
+    fig = go.Figure()
     
-    fig = px.bar(
-        monthly, 
-        x="Month", 
-        y="Count", 
-        color="Sentiment",
-        color_discrete_map=color_map,
-        title="<b>Monthly Customer Feedback Volume & Sentiment Trends</b>",
-        labels={"Count": "Requests", "Month": "Month"}
-    )
+    # 1. Positive
+    if 'POSITIVE' in monthly.columns:
+        fig.add_trace(go.Bar(
+            name='Positive',
+            x=monthly.index,
+            y=monthly['POSITIVE'],
+            marker_color='#10B981',
+            hovertemplate='<b>%{x}</b><br>Positive: <b>%{y}</b> requests<extra></extra>'
+        ))
+        
+    # 2. Neutral
+    if 'NEUTRAL' in monthly.columns:
+        fig.add_trace(go.Bar(
+            name='Neutral',
+            x=monthly.index,
+            y=monthly['NEUTRAL'],
+            marker_color='#94A3B8',
+            hovertemplate='<b>%{x}</b><br>Neutral: <b>%{y}</b> requests<extra></extra>'
+        ))
+        
+    # 3. Negative (Friction)
+    if 'NEGATIVE' in monthly.columns:
+        fig.add_trace(go.Bar(
+            name='Negative (Friction)',
+            x=monthly.index,
+            y=monthly['NEGATIVE'],
+            marker_color='#EF4444',
+            hovertemplate='<b>%{x}</b><br>Negative: <b>%{y}</b> requests<extra></extra>'
+        ))
+        
     fig.update_layout(
-        template="plotly_white",
+        title=dict(
+            text="<b>Monthly Customer Feedback Volume & Sentiment Trends</b>",
+            font=dict(size=14, color="#0F172A", family="Plus Jakarta Sans, sans-serif"),
+            x=0.0,
+            y=0.98,
+            xanchor='left',
+            yanchor='top'
+        ),
         barmode="stack",
         height=380,
-        margin=dict(l=30, r=30, t=50, b=30),
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor="#f3f4f6")
+        margin=dict(l=65, r=25, t=75, b=45),
+        plot_bgcolor='#FFFFFF',
+        paper_bgcolor='#FFFFFF',
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.04,
+            xanchor="right",
+            x=1.0,
+            title_text="",
+            font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
+        ),
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            tickangle=-25,
+            tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans, sans-serif")
+        ),
+        yaxis=dict(
+            title=dict(
+                text="Requests",
+                font=dict(size=12, color="#64748B", family="Plus Jakarta Sans, sans-serif")
+            ),
+            showgrid=True,
+            gridcolor="#F1F5F9",
+            zeroline=False,
+            tickfont=dict(size=11, color="#64748B", family="Plus Jakarta Sans, sans-serif")
+        )
     )
     return fig
 
@@ -116,14 +246,29 @@ def plot_segment_donut(df):
         names='Segment', 
         values='Count', 
         hole=0.45,
-        title="<b>Feedback Share by Customer Segment</b>",
         color_discrete_sequence=colors
     )
     fig.update_traces(textinfo='percent+label', marker=dict(line=dict(color='#ffffff', width=2)))
     fig.update_layout(
         template="plotly_white",
+        title=dict(
+            text="<b>Feedback Share by Customer Segment</b>",
+            font=dict(size=13, color="#0F172A", family="Plus Jakarta Sans, sans-serif"),
+            x=0.5,
+            y=0.96,
+            xanchor="center",
+            yanchor="top"
+        ),
         height=360,
-        margin=dict(l=20, r=20, t=50, b=20)
+        margin=dict(l=25, r=25, t=60, b=25),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.12,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
+        )
     )
     return fig
 
@@ -214,11 +359,12 @@ def plot_target_demand_trend(df=None, trends_df=None, timeframe="Last 3 Months")
     fig.update_layout(
         template="plotly_white",
         height=235,
-        margin=dict(l=48, r=20, t=10, b=32),
+        margin=dict(l=52, r=24, t=14, b=32),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         showlegend=False,
         xaxis=dict(
+            range=[-0.25, len(x_display) - 0.75],
             tickmode='array',
             tickvals=tick_vals,
             ticktext=tick_text,

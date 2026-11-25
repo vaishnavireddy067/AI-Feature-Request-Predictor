@@ -201,7 +201,11 @@ def plot_scenario_comparison_chart(comparison_df, name_a="Scenario A", name_b="S
     fig.update_layout(
         title=dict(
             text=f"<b>Priority Score Comparison:</b> {name_a} vs {name_b}",
-            font=dict(size=14, color="#0F172A", family="Plus Jakarta Sans, sans-serif")
+            font=dict(size=13, color="#0F172A", family="Plus Jakarta Sans, sans-serif"),
+            x=0.0,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
         ),
         barmode='group',
         bargap=0.25,
@@ -209,14 +213,14 @@ def plot_scenario_comparison_chart(comparison_df, name_a="Scenario A", name_b="S
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         height=380,
-        margin=dict(l=150, r=30, t=50, b=40),
+        margin=dict(l=160, r=30, t=75, b=40),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.02,
+            y=1.04,
             xanchor="right",
-            x=1,
-            font=dict(size=11)
+            x=1.0,
+            font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
         ),
         xaxis=dict(
             title="Normalized Score (0 - 10)",
@@ -225,7 +229,7 @@ def plot_scenario_comparison_chart(comparison_df, name_a="Scenario A", name_b="S
             range=[0, 10.5]
         ),
         yaxis=dict(
-            gridcolor="transparent",
+            showgrid=False,
             tickfont=dict(size=11, color="#334155", family="Plus Jakarta Sans, sans-serif")
         )
     )
