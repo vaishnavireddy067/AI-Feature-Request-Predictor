@@ -213,13 +213,13 @@ def plot_scenario_comparison_chart(comparison_df, name_a="Scenario A", name_b="S
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         height=380,
-        margin=dict(l=160, r=30, t=75, b=40),
+        margin=dict(l=160, r=30, t=55, b=60),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.04,
-            xanchor="right",
-            x=1.0,
+            yanchor="top",
+            y=-0.18,
+            xanchor="center",
+            x=0.5,
             font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
         ),
         xaxis=dict(

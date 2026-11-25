@@ -103,13 +103,13 @@ def plot_interactive_rice_matrix(roadmap_df):
             yanchor="top"
         ),
         height=540,
-        margin=dict(l=75, r=35, t=80, b=50),
+        margin=dict(l=75, r=35, t=60, b=65),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.03,
-            xanchor="right",
-            x=1.0,
+            yanchor="top",
+            y=-0.16,
+            xanchor="center",
+            x=0.5,
             title_text="Stage: ",
             font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
         ),
@@ -199,16 +199,16 @@ def plot_interactive_trends(df, trends_df=None):
             yanchor='top'
         ),
         barmode="stack",
-        height=380,
-        margin=dict(l=65, r=25, t=75, b=45),
+        height=400,
+        margin=dict(l=70, r=25, t=55, b=70),
         plot_bgcolor='#FFFFFF',
         paper_bgcolor='#FFFFFF',
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.04,
-            xanchor="right",
-            x=1.0,
+            yanchor="top",
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
             title_text="",
             font=dict(size=11, color="#475569", family="Plus Jakarta Sans, sans-serif")
         ),

@@ -30,12 +30,7 @@ from utils.prd_generator import generate_full_product_spec
 from utils.capacity import calculate_capacity_plan, auto_balance_roadmap_capacity, plot_capacity_utilization_chart
 from utils.decision_log import init_decision_log, record_new_decision, explain_decision_comparison, export_decision_log_markdown
 
-import importlib
 import utils.visualization as vis
-try:
-    importlib.reload(vis)
-except Exception:
-    pass
 
 plot_interactive_rice_matrix = getattr(vis, 'plot_interactive_rice_matrix', None)
 plot_interactive_trends = getattr(vis, 'plot_interactive_trends', None)
@@ -44,6 +39,11 @@ generate_wordcloud = getattr(vis, 'generate_wordcloud', None)
 plot_target_demand_trend = getattr(vis, 'plot_target_demand_trend', None)
 plot_target_sentiment_donut = getattr(vis, 'plot_target_sentiment_donut', None)
 plot_real_category_distribution = getattr(vis, 'plot_real_category_distribution', None)
+
+def navigate_to(page_name):
+    st.session_state.active_nav = page_name
+    st.session_state.sidebar_nav_key = page_name
+    st.rerun()
 
 # ----------------- Pipeline & Data Loading Helpers ----------------- #
 def load_sample_dataset():
@@ -505,11 +505,24 @@ with st.sidebar:
         "⚙️ Settings"
     ]
     
+    def on_nav_change():
+        st.session_state.active_nav = st.session_state.sidebar_nav_key
+
+    if "active_nav" not in st.session_state:
+        st.session_state.active_nav = "🏠 Overview"
+    if "sidebar_nav_key" not in st.session_state or st.session_state.sidebar_nav_key != st.session_state.active_nav:
+        st.session_state.sidebar_nav_key = st.session_state.active_nav
+
     curr_nav_idx = nav_options.index(st.session_state.active_nav) if st.session_state.active_nav in nav_options else 0
-    selected_nav = st.radio("Nav", nav_options, index=curr_nav_idx, label_visibility="collapsed")
-    if selected_nav != st.session_state.active_nav:
-        st.session_state.active_nav = selected_nav
-        st.rerun()
+    selected_nav = st.radio(
+        "Nav",
+        nav_options,
+        index=curr_nav_idx,
+        key="sidebar_nav_key",
+        on_change=on_nav_change,
+        label_visibility="collapsed"
+    )
+    st.session_state.active_nav = selected_nav
 
     # Optional Collapsible Quick Dataset Actions
     with st.expander("⚡ Quick Data Controls", expanded=False):
@@ -543,8 +556,7 @@ with st.sidebar:
     </div>
     """))
     if st.button("Explore AI Copilot →", key="sb_copilot_btn", use_container_width=True):
-        st.session_state.active_nav = "🔍 Feedback Explorer"
-        st.rerun()
+        navigate_to("🔍 Feedback Explorer")
 
     st.markdown("<div style='font-size: 0.65rem; color: #64748B; text-align: center; margin-top: 8px;'>v2.0.0 • Powered by AI ✨</div>", unsafe_allow_html=True)
 
@@ -582,8 +594,9 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 label_visibility="collapsed"
             )
         with col_ctrl2:
-            csv_data = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Export CSV", data=csv_data, file_name="feedback_export.csv", mime="text/csv", use_container_width=True)
+            if 'cached_csv_bytes' not in st.session_state or st.session_state.cached_csv_bytes is None:
+                st.session_state.cached_csv_bytes = df.to_csv(index=False).encode('utf-8')
+            st.download_button("📥 Export CSV", data=st.session_state.cached_csv_bytes, file_name="feedback_export.csv", mime="text/csv", use_container_width=True)
         with col_ctrl3:
             with st.container(border=True):
                 st.markdown("<div style='font-size: 0.78rem; font-weight: 700; color: #0F172A; line-height: 1.1;'>Vaishnavi Reddy ▾</div><div style='font-size: 0.65rem; color: #64748B;'>Product Strategist</div>", unsafe_allow_html=True)
@@ -599,28 +612,22 @@ if st.session_state.processed_data and st.session_state.df is not None:
             w1, w2, w3, w4, w5, w6 = st.columns(6)
             with w1:
                 if st.button("💬 Feedback", key="wf_step_1", use_container_width=True, help="1. Explore raw customer feedback"):
-                    st.session_state.active_nav = "🔍 Feedback Explorer"
-                    st.rerun()
+                    navigate_to("🔍 Feedback Explorer")
             with w2:
                 if st.button("🔎 Evidence", key="wf_step_2", use_container_width=True, help="2. Audit verbatim customer quotes & segments"):
-                    st.session_state.active_nav = "🔎 Customer Evidence"
-                    st.rerun()
+                    navigate_to("🔎 Customer Evidence")
             with w3:
                 if st.button("🎯 Simulate", key="wf_step_3", use_container_width=True, help="3. Priority Scenario Simulator (Customer First vs Revenue First)"):
-                    st.session_state.active_nav = "🎯 Scenario Simulator"
-                    st.rerun()
+                    navigate_to("🎯 Scenario Simulator")
             with w4:
                 if st.button("📝 PRD Spec", key="wf_step_4", use_container_width=True, help="4. AI Feature-to-PRD Generator with User Stories"):
-                    st.session_state.active_nav = "📝 AI PRD Generator"
-                    st.rerun()
+                    navigate_to("📝 AI PRD Generator")
             with w5:
                 if st.button("⚡ Capacity", key="wf_step_5", use_container_width=True, help="5. Sprint Capacity Planner & Overbooking Detection"):
-                    st.session_state.active_nav = "⚡ Capacity Planner"
-                    st.rerun()
+                    navigate_to("⚡ Capacity Planner")
             with w6:
                 if st.button("📜 Decisions", key="wf_step_6", use_container_width=True, help="6. Decision History & Explainability Audit"):
-                    st.session_state.active_nav = "📜 Decision History"
-                    st.rerun()
+                    navigate_to("📜 Decision History")
 
     st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
 
@@ -757,8 +764,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 st.metric("Sprint Feasibility", f"{feasibility_pct}%", feasibility_sub)
                 st.caption("Calculated from unblocked dependencies in current sprint.")
                 if st.button("Generate Sprint PRD ✨", key="sprint_prd_btn", type="primary", use_container_width=True):
-                    st.session_state.active_nav = "📝 AI PRD Generator"
-                    st.rerun()
+                    navigate_to("📝 AI PRD Generator")
 
         st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
 
@@ -774,8 +780,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     st.caption("Ranked by Smart RICE Score")
                 with col_t2:
                     if st.button("View All →", key="view_all_rice_btn", use_container_width=True):
-                        st.session_state.active_nav = "🏆 Prioritization"
-                        st.rerun()
+                        navigate_to("🏆 Prioritization")
 
                 # Robust source: prefer roadmap_df which already has clean themes and formatted scores, fallback to ranking_df
                 if roadmap_df is not None and not roadmap_df.empty and 'Theme' in roadmap_df.columns:
@@ -835,8 +840,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     st.caption("Evidence-backed customer signals")
                 with col_i2:
                     if st.button("View Details →", key="view_details_ins_btn", use_container_width=True):
-                        st.session_state.active_nav = "✨ AI Insights"
-                        st.rerun()
+                        navigate_to("✨ AI Insights")
 
                 if insights and len(insights) > 0:
                     for idx, ins in enumerate(insights[:3]):
@@ -862,8 +866,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     st.caption("Now / Next / Later horizons")
                 with col_r2:
                     if st.button("View Board →", key="view_board_rdm_btn", use_container_width=True):
-                        st.session_state.active_nav = "🗺️ Roadmap"
-                        st.rerun()
+                        navigate_to("🗺️ Roadmap")
 
                 if roadmap_df is not None and not roadmap_df.empty:
                     c_now, c_next, c_later = st.columns(3)
@@ -910,8 +913,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                     st.markdown(f"🔔 **Emerging Alert:** Feature requests for **\"{alert_theme}\"** have surged by **{alert_surge}%** in the last 30 days. {alert_rec}")
                 with col_alt_btn:
                     if st.button("Investigate Alert →", key="investigate_alert_btn", use_container_width=True):
-                        st.session_state.active_nav = "📊 Trends & Analytics"
-                        st.rerun()
+                        navigate_to("📊 Trends & Analytics")
 
     # =========================================================================
     # VIEW 2: 🔍 FEEDBACK EXPLORER
@@ -981,8 +983,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
             st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
             if st.button("📝 Generate PRD for this Feature →", key="ev_to_prd_btn", use_container_width=True):
                 st.session_state.selected_prd_theme = selected_theme_name
-                st.session_state.active_nav = "📝 AI PRD Generator"
-                st.rerun()
+                navigate_to("📝 AI PRD Generator")
 
         # Cluster Data
         cluster_data = df[df['Cluster'] == selected_cluster_id] if 'Cluster' in df.columns else df
@@ -1421,8 +1422,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
             )
         with col_act2:
             if st.button("⚡ Plan Sprint Capacity →", key="prd_to_capacity_btn", use_container_width=True):
-                st.session_state.active_nav = "⚡ Capacity Planner"
-                st.rerun()
+                navigate_to("⚡ Capacity Planner")
         with col_act3:
             st.caption("✅ PRD formatted with Agile User Stories & BDD Given/When/Then acceptance criteria.")
 
@@ -1719,8 +1719,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                             bundle = run_full_pipeline(new_upload)
                             for k, v in bundle.items():
                                 st.session_state[k] = v
-                            st.session_state.active_nav = "🏠 Overview"
-                            st.rerun()
+                            navigate_to("🏠 Overview")
 
         with col_s2:
             with st.container(border=True):
@@ -1728,8 +1727,7 @@ if st.session_state.processed_data and st.session_state.df is not None:
                 st.write("Reset current state or reload the pre-computed 1,248 request dataset.")
                 if st.button("⚡ Reload Sample Dataset (1,248 Reqs)", key="settings_reload_sample_btn", use_container_width=True):
                     load_sample_dataset()
-                    st.session_state.active_nav = "🏠 Overview"
-                    st.rerun()
+                    navigate_to("🏠 Overview")
                 if st.button("🔄 Reset Workspace", key="settings_reset_btn", use_container_width=True):
                     for k in state_defaults.keys():
                         st.session_state[k] = state_defaults[k]
@@ -1747,8 +1745,7 @@ else:
                 st.write("Load 1,248 multi-channel customer requests across Enterprise, Pro, and Free tiers.")
                 if st.button("Load Sample Dataset (1,248 Reqs)", type="primary", key="empty_load_sample_btn", use_container_width=True):
                     load_sample_dataset()
-                    st.session_state.active_nav = "🏠 Overview"
-                    st.rerun()
+                    navigate_to("🏠 Overview")
                     
         with col_start2:
             with st.container(border=True):
@@ -1761,8 +1758,7 @@ else:
                             bundle = run_full_pipeline(empty_upload)
                             for k, v in bundle.items():
                                 st.session_state[k] = v
-                            st.session_state.active_nav = "🏠 Overview"
-                            st.rerun()
+                            navigate_to("🏠 Overview")
                             
         st.markdown("---")
         st.caption("Supported columns: `Request_Text` (or feedback/description), `Category`, `Upvotes`, `Customer_Segment` (tier), `Date`, `Status`.")

@@ -24,17 +24,17 @@ def test_rice_matrix_layout_no_collisions():
     # 1. Left margin must be >= 70 to prevent y-axis label clipping
     assert fig.layout.margin.l >= 70, f"Left margin too small: {fig.layout.margin.l}"
     
-    # 2. Top margin must be >= 75 to give headroom for title and legend
-    assert fig.layout.margin.t >= 75, f"Top margin too small: {fig.layout.margin.t}"
+    # 2. Top margin must be >= 50 for title, and bottom margin >= 50 for horizontal legend
+    assert fig.layout.margin.t >= 50, f"Top margin too small: {fig.layout.margin.t}"
+    assert fig.layout.margin.b >= 50, f"Bottom margin too small: {fig.layout.margin.b}"
     
     # 3. Title positioned on left
     assert fig.layout.title.x <= 0.05
     assert fig.layout.title.y >= 0.95
     
-    # 4. Legend horizontal and placed on top right
+    # 4. Legend horizontal and placed cleanly below the plot area
     assert fig.layout.legend.orientation == 'h'
-    assert fig.layout.legend.x >= 0.9
-    assert fig.layout.legend.y >= 1.0
+    assert fig.layout.legend.y <= 0.0
     
     # 5. Y-axis headroom covers max_score * 1.2
     max_score = roadmap_mock['Score'].max()
@@ -49,11 +49,11 @@ def test_trends_layout_no_collisions():
     fig = plot_interactive_trends(df_mock)
     
     assert fig.layout.margin.l >= 65, f"Left margin too small: {fig.layout.margin.l}"
-    assert fig.layout.margin.t >= 70, f"Top margin too small: {fig.layout.margin.t}"
+    assert fig.layout.margin.t >= 50, f"Top margin too small: {fig.layout.margin.t}"
+    assert fig.layout.margin.b >= 50, f"Bottom margin too small: {fig.layout.margin.b}"
     assert fig.layout.title.x <= 0.05
     assert fig.layout.legend.orientation == 'h'
-    assert fig.layout.legend.x >= 0.9
-    assert fig.layout.legend.y >= 1.0
+    assert fig.layout.legend.y <= 0.0
 
 def test_scenario_comparison_chart_layout():
     comp_df = pd.DataFrame({
@@ -64,8 +64,8 @@ def test_scenario_comparison_chart_layout():
     fig = plot_scenario_comparison_chart(comp_df, "Scenario A", "Scenario B")
     
     assert fig.layout.margin.l >= 150
-    assert fig.layout.margin.t >= 70
     assert fig.layout.legend.orientation == 'h'
+    assert fig.layout.legend.y <= 0.0
 
 def test_capacity_utilization_chart_layout():
     summary_mock = pd.DataFrame({
